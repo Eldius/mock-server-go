@@ -20,7 +20,7 @@ import (
 
 	"github.com/Eldius/mock-server-go/mapper"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // templateCmd represents the template command

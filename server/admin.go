@@ -15,12 +15,14 @@ func RouteHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http.Re
 		if err != nil {
 			fmt.Println("Failed to read request body")
 			fmt.Println(err.Error())
+			rw.WriteHeader(500)
+			_, _ = rw.Write([]byte(err.Error()))
+			return
 		}
 		router.Add(mapping)
 		rw.WriteHeader(200)
 		rw.Header().Add("Content-Type", "application/json")
 		_ = json.NewEncoder(rw).Encode(mapping)
-		//_, _ = rw.Write([]byte("RouteHandler request received"))
 	}
 }
 
