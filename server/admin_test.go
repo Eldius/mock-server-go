@@ -12,6 +12,10 @@ import (
 	"github.com/Eldius/mock-server-go/mapper"
 )
 
+const (
+	mappingFile = "../mapper/samples/mapping_file_test.yml"
+)
+
 func TestRouteHandler(t *testing.T) {
 	r := mapper.ImportMappingYaml(mappingFile)
 	h := RouteHandler(&r)
@@ -106,5 +110,61 @@ func TestRouteHandlerError(t *testing.T) {
 	}
 	if len(r.Routes) != 2 {
 		t.Errorf("Routes count must be 2, but was %d", len(r.Routes))
+	}
+}
+
+func TestRouteHandlerGet(t *testing.T) {
+	r := mapper.ImportMappingYaml(mappingFile)
+	h := RouteHandler(&r)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/route", h)
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	url := fmt.Sprintf("%s/route", server.URL)
+
+	c := http.Client{}
+	res, err := c.Get(url)
+	if err != nil {
+		t.Errorf("Failed to make request\n%s", err.Error())
+	}
+	defer res.Body.Close()
+
+	var response []mapper.RequestMapping
+	err = json.NewDecoder(res.Body).Decode(&response)
+	if err != nil {
+		t.Errorf("Failed to unmarshall request body\n%s", err.Error())
+	}
+
+	if len(response) != 2 {
+		t.Errorf("Must return '2' mapping objects, but returned '%d'", len(response))
+	}
+
+	if strings.HasPrefix(res.Header.Get("Content-Type"), "application/json") {
+		t.Errorf("Must return '2' mapping objects, but returned '%d'", len(response))
+	}
+}
+
+func TestRouteHandlerMethodNotAllowed(t *testing.T) {
+	r := mapper.ImportMappingYaml(mappingFile)
+	h := RouteHandler(&r)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/route", h)
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	url := fmt.Sprintf("%s/route", server.URL)
+
+	c := http.Client{}
+	res, err := c.Head(url)
+	if err != nil {
+		t.Errorf("Failed to make request\n%s", err.Error())
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 405 {
+		t.Errorf("Response code must be '405', but was '%d'", res.StatusCode)
 	}
 }

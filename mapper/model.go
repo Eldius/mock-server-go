@@ -1,6 +1,10 @@
 package mapper
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/Eldius/mock-server-go/request"
+)
 
 type MockHeader map[string][]string
 
@@ -16,13 +20,20 @@ type RequestMapping struct {
 	Response MockResponse `json:"response"`
 }
 
-func (r *RequestMapping) MakeResponse(rw http.ResponseWriter) {
+func (r *RequestMapping) MakeResponse(rw http.ResponseWriter) request.ResponseRecord {
+	respRec := request.ResponseRecord{
+		Headers: map[string][]string{},
+	}
 	for k, values := range r.Response.Headers {
 		for _, v := range values {
+			respRec.Headers[k] = append(respRec.Headers[k], v)
 			rw.Header().Add(k, v)
 		}
 	}
 
+	respRec.Code = r.Response.StatusCode
 	rw.WriteHeader(r.Response.StatusCode)
+	respRec.Body = r.Response.Body
 	_, _ = rw.Write([]byte(r.Response.Body))
+	return respRec
 }
