@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/Eldius/mock-server-go/mapper"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -126,6 +127,85 @@ func TestRouteHandlerGet(t *testing.T) {
 
 	c := http.Client{}
 	res, err := c.Get(url)
+	if err != nil {
+		t.Errorf("Failed to make request\n%s", err.Error())
+	}
+	defer res.Body.Close()
+
+	var response []mapper.RequestMapping
+	err = json.NewDecoder(res.Body).Decode(&response)
+	if err != nil {
+		t.Errorf("Failed to unmarshall request body\n%s", err.Error())
+	}
+
+	if len(response) != 2 {
+		t.Errorf("Must return '2' mapping objects, but returned '%d'", len(response))
+	}
+
+	if strings.HasPrefix(res.Header.Get("Content-Type"), "application/json") {
+		t.Errorf("Must return '2' mapping objects, but returned '%d'", len(response))
+	}
+}
+
+func TestRouteHandlerGetYAML(t *testing.T) {
+	r := mapper.ImportMappingYaml(mappingFile)
+	h := RouteHandler(&r)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/route", h)
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	url := fmt.Sprintf("%s/route", server.URL)
+
+	c := http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		t.Errorf("Failed to create request object\n%s", err.Error())
+	}
+	req.Header.Add("Accept", "application/yaml")
+	res, err := c.Do(req)
+	if err != nil {
+		t.Errorf("Failed to make request\n%s", err.Error())
+	}
+	defer res.Body.Close()
+
+	var response []mapper.RequestMapping
+	err = yaml.NewDecoder(res.Body).Decode(&response)
+	if err != nil {
+		t.Errorf("Failed to unmarshall request body\n%s", err.Error())
+	}
+
+	if len(response) != 2 {
+		t.Errorf("Must return '2' mapping objects, but returned '%d'", len(response))
+	}
+
+	if strings.HasPrefix(res.Header.Get("Content-Type"), "application/yaml") {
+		t.Errorf("Must return '2' mapping objects, but returned '%d'", len(response))
+	}
+}
+
+func TestRouteHandlerGetJSON(t *testing.T) {
+	r := mapper.ImportMappingYaml(mappingFile)
+	h := RouteHandler(&r)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/route", h)
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	url := fmt.Sprintf("%s/route", server.URL)
+
+	c := http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		t.Errorf("Failed to create request object\n%s", err.Error())
+	}
+	req.Header.Add("Accept", "application/json")
+	res, err := c.Do(req)
+	if err != nil {
+		t.Errorf("Failed to make request\n%s", err.Error())
+	}
 	if err != nil {
 		t.Errorf("Failed to make request\n%s", err.Error())
 	}
