@@ -4,3 +4,9 @@ start:
 
 test:
 	go test ./... -cover
+
+addtestroute:
+	curl -i -XPOST localhost:8081/route -d @mapper/samples/example_route_request.json -H 'Content-Type: application/json'
+
+getroutemapping:
+	curl localhost:8081/route -H 'Accept: application/yaml'

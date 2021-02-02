@@ -1,0 +1,13 @@
+{
+    "path": "/app/v1/test",
+    "method": "GET",
+    "response": {
+        "headers": {
+            "Content-Type": [
+                "application/json"
+            ]
+        },
+        "body": "{\"msg\": \"Test response!\"}",
+        "statusCode": 200
+    }
+}
