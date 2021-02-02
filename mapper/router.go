@@ -15,8 +15,7 @@ import (
 Router is responsible to manage requests handling
 */
 type Router struct {
-	Routes   []RequestMapping
-	Requests []request.Record
+	Routes []RequestMapping
 }
 
 /*
@@ -24,8 +23,7 @@ NewRouter creates a new Router
 */
 func NewRouter(reqMap []RequestMapping) Router {
 	return Router{
-		Routes:   reqMap,
-		Requests: make([]request.Record, 0),
+		Routes: reqMap,
 	}
 }
 
@@ -41,7 +39,7 @@ func (r *Router) Add(req RequestMapping) *Router {
 Add adds a new request record
 */
 func (r *Router) AddRequest(req *request.Record) *Router {
-	r.Requests = append(r.Requests, *req)
+	request.Persist(req)
 	return r
 }
 
@@ -79,13 +77,17 @@ func comparePath(req *http.Request, m RequestMapping) bool {
 
 func (r *Router) Handle(rw http.ResponseWriter, req *http.Request) {
 	record := request.NewRecord(req)
-	r.AddRequest(record)
 	mapping := r.Route(req)
 	if mapping != nil {
-		record.AddResponse(mapping.MakeResponse(rw))
+		r.AddRequest(record.AddResponse(mapping.MakeResponse(rw)))
 	} else {
 		rw.WriteHeader(404)
 		rw.Header().Add("Content-Type", "text/plain")
+		record.Response = request.ResponseRecord{
+			Code: 404,
+			Body: "Mapping not found",
+		}
+		r.AddRequest(record)
 		_, _ = rw.Write([]byte("Mapping not found"))
 	}
 }

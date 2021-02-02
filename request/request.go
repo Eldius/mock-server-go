@@ -2,6 +2,7 @@ package request
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -18,8 +19,6 @@ type RequestRecord struct {
 }
 
 type ResponseRecord struct {
-	Path    string
-	Method  string
 	Headers Headers
 	Code    int
 	Body    string
@@ -34,9 +33,12 @@ type Record struct {
 func NewRecord(r *http.Request) *Record {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
+		fmt.Printf("Failed to read request body\n%s", err.Error())
 		return nil
 	}
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	fmt.Printf("---\nrequest body:\n%s\n---", string(body))
 
 	return &Record{
 		ID: uuid.New(),

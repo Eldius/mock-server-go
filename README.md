@@ -21,5 +21,5 @@ curl -i localhost:8080/v1/contract
 curl #2
 
 ```bash
-curl -i -XPOST http://localhost:8080/v1/contract -D '{"id": "123", "name": "test"}'
+curl -i -XPOST http://localhost:8080/v1/contract -D '{"id": "123", "name": "test"'
 ```
