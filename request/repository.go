@@ -154,7 +154,7 @@ func GetRequests() []Record {
 				Response: ResponseRecord{},
 			}
 
-			row.Scan(
+			_ = row.Scan(
 				&record.ID,             // ID
 				&record.ReqID,          // REQ_ID
 				&record.Request.Path,   // PATH

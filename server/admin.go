@@ -47,6 +47,8 @@ func RequestsHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http
 			return
 		}
 
+		rw.WriteHeader(200)
+		rw.Header().Add("Content-Type", "application/json")
 		_ = json.NewEncoder(rw).Encode(router.GetRequests())
 	}
 }

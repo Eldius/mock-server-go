@@ -28,29 +28,30 @@
     <!-- Begin page content -->
     <main role="main" class="container">
         <h1 class="mt-5">Mock Server Admin console</h1>
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Routes</h5>
-                <div class="card-text">
-                    <ul class="list-group my-routes-list" id="my-routes-list">
-                    </ul>
+        <div class="row">
+            <div class="card col-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Routes</h5>
+                    <div class="card-text">
+                        <ul class="list-group my-routes-list" id="my-routes-list">
+                        </ul>
+                    </div>
+                    <a href="#" id="addRoute" class="btn btn-primary">Add Route</a>
                 </div>
-                <a href="#" id="addRoute" class="btn btn-primary">Add Route</a>
+            </div>
+            <div class="card col-sm">
+                <h5 class="card-title">Routes file</h5>
+                <div class="card-body card-text">
+                    <pre class="my-routes-config" id="routes-config-file"></pre>
+                </div>
             </div>
         </div>
-        <br />
-        <div class="card">
-            <h5 class="card-title">Routes file</h5>
-            <div class="card-body card-text">
-                <pre class="my-routes-config" id="routes-config-file"></pre>
-            </div>
-        </div>
-
     </main>
 
     <footer class="footer">
         <div class="container">
-            <span class="text-muted">It's just a work in progress dashboard.</span>
+            <span class="text-muted">It's just a work in progress dashboard for the <a
+                    href="https://github.com/Eldius/mock-server-go">Mock Server</a>.</span>
         </div>
     </footer>
 
