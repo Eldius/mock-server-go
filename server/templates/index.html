@@ -2,65 +2,63 @@
 <html lang="en">
 
 <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/docs/4.0/assets/img/favicons/favicon.ico">
 
+    <title>Mock Server Admin Console</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.0/examples/sticky-footer/">
+
+    <!-- Bootstrap core CSS -->
+    <!--<link href="../../dist/css/bootstrap.min.css" rel="stylesheet">-->
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
 
-    <title>Mock Server Admin Console</title>
+    <!-- Custom styles for this template -->
+    <link href="sticky-footer.css" rel="stylesheet">
+
 </head>
 
-<body class="d-flex flex-column h-100">
-    <h1>Admin Console</h1>
-    <main class="flex-shrink-0">
-        <div class="container">
-            <div class="card" style="width: 18rem;">
-                <div class="card-body">
-                    <h5 class="card-title">Routes</h5>
-                    <div class="card-text">
-                        <ul class="list-group">
-                            {{ range $route := .Routes }}
-                            <li class="list-group-item">[{{ $route.Method }}] {{ $route.Path }}</li>
-                            {{ end }}
-                        </ul>
-                    </div>
-                    <a href="#" id="addRoute" class="btn btn-primary">Add Route</a>
+<body>
+
+    <!-- Begin page content -->
+    <main role="main" class="container">
+        <h1 class="mt-5">Mock Server Admin console</h1>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Routes</h5>
+                <div class="card-text">
+                    <ul class="list-group my-routes-list" id="my-routes-list">
+                    </ul>
                 </div>
+                <a href="#" id="addRoute" class="btn btn-primary">Add Route</a>
             </div>
-            <h1 class="mt-5">Routes</h1>
-            <ul class="list-group">
-                {{ range $route := .Routes }}
-                <li class="list-group-item">[{{ $route.Method }}] {{ $route.Path }}</li>
-                {{ end }}
-            </ul>
-            <p>Use <a href="/docs/5.0/examples/sticky-footer-navbar/">the sticky footer with a fixed navbar</a> if need
-                be,
-                too.</p>
         </div>
+        <br />
+        <div class="card">
+            <h5 class="card-title">Routes file</h5>
+            <div class="card-body card-text">
+                <pre class="my-routes-config" id="routes-config-file"></pre>
+            </div>
+        </div>
+
     </main>
-    <div class="modal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Modal title</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Modal body text goes here.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
-                </div>
-            </div>
+
+    <footer class="footer">
+        <div class="container">
+            <span class="text-muted">It's just a work in progress dashboard.</span>
         </div>
-    </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
         crossorigin="anonymous"></script>
+
+    <script type="application/javascript" src="/static/index.js"></script>
 </body>
 
 </html>

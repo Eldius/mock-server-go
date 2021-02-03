@@ -16,6 +16,7 @@ const (
 	createTableRequest = `
 create table if not exists REQUEST (
 	ID integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+	REQ_ID varchar(50),
 	PATH varchar(255),
 	METHOD varchar(15),
 	REQUEST varchar(4000),
@@ -39,8 +40,10 @@ insert into REQUEST (
 	, REQUEST
 	, RESPONSE
 	, RESPONSE_CODE
+	, REQ_ID
 ) values (
 	?
+	, ?
 	, ?
 	, ?
 	, ?
@@ -60,6 +63,8 @@ insert into HEADERS (
 	, ?
 )
 `
+
+	selectRequests = `SELECT ID, REQ_ID, PATH, METHOD, REQUEST, RESPONSE, RESPONSE_CODE FROM REQUEST`
 )
 
 func initDB() *sql.DB {
@@ -106,7 +111,7 @@ func openDB() *sql.DB {
 
 func Persist(r *Record) *Record {
 	db := initDB()
-	if result, err := db.Exec(insertRequest, r.Request.Path, r.Request.Method, r.Request.Body, r.Response.Body, r.Response.Code); err != nil {
+	if result, err := db.Exec(insertRequest, r.Request.Path, r.Request.Method, r.Request.Body, r.Response.Body, r.Response.Code, r.ReqID); err != nil {
 		fmt.Println("Failed to insert request to db")
 		log.Fatal(err.Error())
 	} else {
@@ -133,4 +138,34 @@ func Persist(r *Record) *Record {
 
 	}
 	return r
+}
+
+func GetRequests() []Record {
+	records := make([]Record, 0)
+	db := initDB()
+	if row, err := db.Query(selectRequests); err != nil {
+		fmt.Println("Failed to list requests")
+		log.Printf("Failed to query requests\n%s\n", err.Error())
+	} else {
+		defer row.Close()
+		for row.Next() { // Iterate and fetch the records from result cursor
+			record := Record{
+				Request:  RequestRecord{},
+				Response: ResponseRecord{},
+			}
+
+			row.Scan(
+				&record.ID,             // ID
+				&record.ReqID,          // REQ_ID
+				&record.Request.Path,   // PATH
+				&record.Request.Method, // METHOD
+				&record.Request.Body,   // REQUEST
+				&record.Response.Body,  // RESPONSE
+				&record.Response.Code,  // RESPONSE_CODE
+			)
+			records = append(records, record)
+		}
+	}
+
+	return records
 }

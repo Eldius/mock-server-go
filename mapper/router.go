@@ -15,7 +15,7 @@ import (
 Router is responsible to manage requests handling
 */
 type Router struct {
-	Routes []RequestMapping
+	Routes []RequestMapping `json:"routes" yaml:"routes"`
 }
 
 /*
@@ -90,4 +90,8 @@ func (r *Router) Handle(rw http.ResponseWriter, req *http.Request) {
 		r.AddRequest(record)
 		_, _ = rw.Write([]byte("Mapping not found"))
 	}
+}
+
+func (r *Router) GetRequests() []request.Record {
+	return request.GetRequests()
 }

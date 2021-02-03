@@ -38,21 +38,41 @@ func RouteHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http.Re
 	}
 }
 
+func RequestsHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http.Request) {
+
+	return func(rw http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			fmt.Println("returning: 'Method not allowed'")
+			rw.WriteHeader(405)
+			return
+		}
+
+		_ = json.NewEncoder(rw).Encode(router.GetRequests())
+	}
+}
+
 func encodeResponse(router *mapper.Router, r *http.Request, rw http.ResponseWriter) {
 	accepts := r.Header.Get("Accept")
 	if strings.Contains(strings.ToLower(accepts), "application/yaml") {
 		rw.Header().Add("Content-Type", "application/yaml")
-		_ = yaml.NewEncoder(rw).Encode(router.Routes)
+		_ = yaml.NewEncoder(rw).Encode(router)
 	} else {
 		rw.Header().Add("Content-Type", "application/json")
-		_ = json.NewEncoder(rw).Encode(router.Routes)
+		_ = json.NewEncoder(rw).Encode(router)
 	}
 }
 
 func StartAdminServer(port int, r *mapper.Router) {
 	mux := http.NewServeMux()
+	if adminConsole {
+		fs := http.FileServer(http.Dir("./static"))
+		mux.Handle("/static/", http.StripPrefix("/static/", fs))
+		mux.HandleFunc("/", AdminPanelHandler(r))
+	}
 	mux.HandleFunc("/route", RouteHandler(r))
-	mux.HandleFunc("/", AdminPanelHandler(r))
+	mux.HandleFunc("/request", RequestsHandler(r))
 
-	fmt.Println(http.ListenAndServe(fmt.Sprintf(":%d", port), mux))
+	host := fmt.Sprintf(":%d", port)
+
+	fmt.Println(http.ListenAndServe(host, mux))
 }

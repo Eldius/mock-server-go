@@ -25,7 +25,8 @@ type ResponseRecord struct {
 }
 
 type Record struct {
-	ID       uuid.UUID
+	ID       int
+	ReqID    uuid.UUID
 	Request  RequestRecord
 	Response ResponseRecord
 }
@@ -41,7 +42,7 @@ func NewRecord(r *http.Request) *Record {
 	fmt.Printf("---\nrequest body:\n%s\n---", string(body))
 
 	return &Record{
-		ID: uuid.New(),
+		ReqID: uuid.New(),
 		Request: RequestRecord{
 			Path:   r.URL.Path,
 			Method: r.Method,

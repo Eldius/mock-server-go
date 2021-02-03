@@ -3,6 +3,8 @@ start:
 	go run main.go start mapper/samples/example_mapping_file.yml
 
 test:
+	-rm *.db
+	-rm **/*.db
 	go test ./... -cover
 
 addtestroute:
