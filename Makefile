@@ -1,10 +1,12 @@
 
-start:
-	go run main.go start mapper/samples/example_mapping_file.yml
-
-test:
+clean:
 	-rm *.db
 	-rm **/*.db
+
+start: clean
+	go run main.go start mapper/samples/example_mapping_file.yml
+
+test: clean
 	go test ./... -cover
 
 addtestroute:
@@ -12,3 +14,6 @@ addtestroute:
 
 getroutemapping:
 	curl localhost:8081/route -H 'Accept: application/yaml'
+
+benchmark: clean
+	go test -bench=. ./...

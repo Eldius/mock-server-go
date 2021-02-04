@@ -111,8 +111,13 @@ func openDB() *sql.DB {
 
 func Persist(r *Record) *Record {
 	db := initDB()
+	tx, err := db.Begin()
+	if err != nil {
+		fmt.Println("Failed to start transaction")
+	}
 	if result, err := db.Exec(insertRequest, r.Request.Path, r.Request.Method, r.Request.Body, r.Response.Body, r.Response.Code, r.ReqID); err != nil {
 		fmt.Println("Failed to insert request to db")
+		log.Printf("executing transaction rollback\n%s\n", tx.Rollback())
 		log.Fatal(err.Error())
 	} else {
 		fmt.Println(result)
@@ -137,6 +142,7 @@ func Persist(r *Record) *Record {
 		}
 
 	}
+	log.Printf("executing transaction commit\n%s\n", tx.Commit())
 	return r
 }
 
