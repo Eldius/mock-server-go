@@ -2,7 +2,6 @@ package request
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -89,7 +88,7 @@ func openDB() *sql.DB {
 		}
 		result, err := statement.Exec() // Execute SQL Statements
 		if err != nil {
-			fmt.Printf("Failed to insert record\n%s", err.Error())
+			log.Printf("Failed to insert record\n%s", err.Error())
 		}
 		log.Println(result.RowsAffected())
 		statement, err = db.Prepare(createTableHeader) // Prepare SQL Statement
@@ -98,7 +97,7 @@ func openDB() *sql.DB {
 		}
 		result, err = statement.Exec() // Execute SQL Statements
 		if err != nil {
-			fmt.Printf("Failed to insert record\n%s", err.Error())
+			log.Printf("Failed to insert record\n%s", err.Error())
 		}
 		log.Println(result.RowsAffected())
 		log.Println("request table created")
@@ -109,18 +108,22 @@ func openDB() *sql.DB {
 	return db
 }
 
-func Persist(r *Record) *Record {
+func Persist(r *Record) {
+	go persist(r)
+}
+
+func persist(r *Record) {
 	db := initDB()
 	tx, err := db.Begin()
 	if err != nil {
-		fmt.Println("Failed to start transaction")
+		log.Println("Failed to start transaction")
 	}
 	if result, err := db.Exec(insertRequest, r.Request.Path, r.Request.Method, r.Request.Body, r.Response.Body, r.Response.Code, r.ReqID); err != nil {
-		fmt.Println("Failed to insert request to db")
+		log.Println("Failed to insert request to db")
 		log.Printf("executing transaction rollback\n%s\n", tx.Rollback())
 		log.Fatal(err.Error())
 	} else {
-		fmt.Println(result)
+		log.Println(result)
 		reqId, _ := result.LastInsertId()
 		for k, v := range r.Request.Headers {
 			_, _ = db.Exec(
@@ -150,7 +153,7 @@ func GetRequests() []Record {
 	records := make([]Record, 0)
 	db := initDB()
 	if row, err := db.Query(selectRequests); err != nil {
-		fmt.Println("Failed to list requests")
+		log.Println("Failed to list requests")
 		log.Printf("Failed to query requests\n%s\n", err.Error())
 	} else {
 		defer row.Close()
