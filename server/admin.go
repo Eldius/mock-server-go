@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -12,13 +13,13 @@ import (
 
 func RouteHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http.Request) {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		fmt.Printf("Receiving %s request\n", r.Method)
+		log.Printf("Receiving %s request\n", r.Method)
 		if r.Method == "POST" {
 			var mapping mapper.RequestMapping
 			err := json.NewDecoder(r.Body).Decode(&mapping)
 			if err != nil {
-				fmt.Println("Failed to read request body")
-				fmt.Println(err.Error())
+				log.Println("Failed to read request body")
+				log.Println(err.Error())
 				rw.WriteHeader(500)
 				_, _ = rw.Write([]byte(err.Error()))
 				return
@@ -32,7 +33,7 @@ func RouteHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http.Re
 			rw.WriteHeader(200)
 			encodeResponse(router, r, rw)
 		} else {
-			fmt.Println("returning: 'Method not allowed'")
+			log.Println("returning: 'Method not allowed'")
 			rw.WriteHeader(405)
 		}
 	}
@@ -42,7 +43,7 @@ func RequestsHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http
 
 	return func(rw http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" {
-			fmt.Println("returning: 'Method not allowed'")
+			log.Println("returning: 'Method not allowed'")
 			rw.WriteHeader(405)
 			return
 		}
@@ -76,5 +77,5 @@ func StartAdminServer(port int, r *mapper.Router) {
 
 	host := fmt.Sprintf(":%d", port)
 
-	fmt.Println(http.ListenAndServe(host, mux))
+	log.Println(http.ListenAndServe(host, mux))
 }

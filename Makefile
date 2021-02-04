@@ -1,7 +1,7 @@
 
 clean:
-	-rm *.db
-	-rm **/*.db
+	-rm *.db*
+	-rm **/*.db*
 
 start: clean
 	go run main.go start mapper/samples/example_mapping_file.yml

@@ -114,13 +114,8 @@ func Persist(r *Record) {
 
 func persist(r *Record) {
 	db := initDB()
-	tx, err := db.Begin()
-	if err != nil {
-		log.Println("Failed to start transaction")
-	}
 	if result, err := db.Exec(insertRequest, r.Request.Path, r.Request.Method, r.Request.Body, r.Response.Body, r.Response.Code, r.ReqID); err != nil {
 		log.Println("Failed to insert request to db")
-		log.Printf("executing transaction rollback\n%s\n", tx.Rollback())
 		log.Fatal(err.Error())
 	} else {
 		log.Println(result)
@@ -145,8 +140,6 @@ func persist(r *Record) {
 		}
 
 	}
-	log.Printf("executing transaction commit\n%s\n", tx.Commit())
-	return r
 }
 
 func GetRequests() []Record {

@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -19,7 +18,7 @@ func init() {
 	if _, err := os.Stat("server/templates/index.html"); err == nil {
 		tmpl = template.Must(template.ParseGlob("server/templates/*.html"))
 	} else {
-		fmt.Println("Admin console is disabled")
+		log.Println("Admin console is disabled")
 		adminConsole = false
 	}
 }

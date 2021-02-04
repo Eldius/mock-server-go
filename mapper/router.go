@@ -1,7 +1,6 @@
 package mapper
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -59,7 +58,7 @@ func ImportMappingYaml(source string) Router {
 	var r Router
 	f, err := os.Open(source)
 	if err != nil {
-		fmt.Println("Failed to parse mapping file")
+		log.Println("Failed to parse mapping file")
 		log.Fatalln(err.Error())
 	}
 	defer f.Close()
