@@ -109,10 +109,6 @@ func openDB() *sql.DB {
 }
 
 func Persist(r *Record) {
-	go persist(r)
-}
-
-func persist(r *Record) {
 	db := initDB()
 	if result, err := db.Exec(insertRequest, r.Request.Path, r.Request.Method, r.Request.Body, r.Response.Body, r.Response.Code, r.ReqID); err != nil {
 		log.Println("Failed to insert request to db")
