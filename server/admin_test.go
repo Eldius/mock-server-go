@@ -142,7 +142,7 @@ func TestRouteHandlerGet(t *testing.T) {
 		t.Errorf("Must return '2' mapping objects, but returned '%d'", len(response.Routes))
 	}
 
-	if strings.HasPrefix(res.Header.Get("Content-Type"), "application/json") {
+	if !strings.HasPrefix(res.Header.Get("Content-Type"), "application/json") {
 		t.Errorf("Must return have 'Content-Type' header with 'application/json' value, but has '%s'", res.Header.Get("Content-Type"))
 	}
 }
@@ -180,7 +180,7 @@ func TestRouteHandlerGetYAML(t *testing.T) {
 		t.Errorf("Must return '2' mapping objects, but returned '%d'", len(response.Routes))
 	}
 
-	if strings.HasPrefix(res.Header.Get("Content-Type"), "application/yaml") {
+	if !strings.HasPrefix(res.Header.Get("Content-Type"), "application/yaml") {
 		t.Errorf("Must return have 'Content-Type' header with 'application/yaml' value, but has '%s'", res.Header.Get("Content-Type"))
 	}
 }
@@ -221,7 +221,7 @@ func TestRouteHandlerGetJSON(t *testing.T) {
 		t.Errorf("Must return '2' mapping objects, but returned '%d'", len(response.Routes))
 	}
 
-	if strings.HasPrefix(res.Header.Get("Content-Type"), "application/json") {
+	if !strings.HasPrefix(res.Header.Get("Content-Type"), "application/json") {
 		t.Errorf("Must return have 'Content-Type' header with 'application/json' value, but has '%s'", res.Header.Get("Content-Type"))
 	}
 }
