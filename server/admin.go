@@ -25,12 +25,11 @@ func RouteHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http.Re
 				return
 			}
 			router.Add(mapping)
+			rw.Header().Set("Content-Type", "application/json")
 			rw.WriteHeader(200)
-			rw.Header().Add("Content-Type", "application/json")
 			_ = json.NewEncoder(rw).Encode(mapping)
 
 		} else if r.Method == "GET" {
-			rw.WriteHeader(200)
 			encodeResponse(router, r, rw)
 		} else {
 			log.Println("returning: 'Method not allowed'")
@@ -48,8 +47,8 @@ func RequestsHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http
 			return
 		}
 
+		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(200)
-		rw.Header().Add("Content-Type", "application/json")
 		_ = json.NewEncoder(rw).Encode(router.GetRequests())
 	}
 }
@@ -57,10 +56,12 @@ func RequestsHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http
 func encodeResponse(router *mapper.Router, r *http.Request, rw http.ResponseWriter) {
 	accepts := r.Header.Get("Accept")
 	if strings.Contains(strings.ToLower(accepts), "application/yaml") {
-		rw.Header().Add("Content-Type", "application/yaml")
+		rw.Header().Set("Content-Type", "application/yaml")
+		rw.WriteHeader(200)
 		_ = yaml.NewEncoder(rw).Encode(router)
 	} else {
-		rw.Header().Add("Content-Type", "application/json")
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(200)
 		_ = json.NewEncoder(rw).Encode(router)
 	}
 }

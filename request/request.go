@@ -12,23 +12,23 @@ import (
 type Headers map[string][]string
 
 type RequestRecord struct {
-	Path    string
-	Method  string
-	Headers Headers
-	Body    string
+	Path    string  `json:"path"`
+	Method  string  `json:"method"`
+	Headers Headers `json:"headers"`
+	Body    string  `json:"body"`
 }
 
 type ResponseRecord struct {
-	Headers Headers
-	Code    int
-	Body    string
+	Headers Headers `json:"headers"`
+	Code    int     `json:"code"`
+	Body    string  `json:"body"`
 }
 
 type Record struct {
-	ID       int
-	ReqID    uuid.UUID
-	Request  RequestRecord
-	Response ResponseRecord
+	ID       int            `json:"id"`
+	ReqID    uuid.UUID      `json:"reqId"`
+	Request  RequestRecord  `json:"request"`
+	Response ResponseRecord `json:"response"`
 }
 
 func NewRecord(r *http.Request) *Record {

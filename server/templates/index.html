@@ -17,7 +17,7 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
-
+    <link href="https://unpkg.com/bootstrap-table@1.18.2/dist/bootstrap-table.min.css" rel="stylesheet">
     <!-- Custom styles for this template -->
     <link href="sticky-footer.css" rel="stylesheet">
 
@@ -28,6 +28,10 @@
     <!-- Begin page content -->
     <main role="main" class="container">
         <h1 class="mt-5">Mock Server Admin console</h1>
+
+        <hr />
+        <br />
+
         <div class="row">
             <div class="card col-sm">
                 <div class="card-body">
@@ -46,6 +50,26 @@
                 </div>
             </div>
         </div>
+        <hr />
+        <br />
+
+        <div class="row">
+            <table class="table table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">ReqID</th>
+                        <th scope="col">Method</th>
+                        <th scope="col">Path</th>
+                        <th scope="col">Request</th>
+                        <th scope="col">Response</th>
+                        <th scope="col">Status Code</th>
+                    </tr>
+                </thead>
+                <tbody id="requests-tbody">
+                </tbody>
+            </table>
+        </div>
     </main>
 
     <footer class="footer">
@@ -55,10 +79,13 @@
         </div>
     </footer>
 
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+        crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
         crossorigin="anonymous"></script>
 
+    <script src="https://unpkg.com/bootstrap-table@1.18.2/dist/bootstrap-table.min.js"></script>
     <script type="application/javascript" src="/static/index.js"></script>
 </body>
 
