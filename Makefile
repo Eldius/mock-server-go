@@ -17,3 +17,17 @@ getroutemapping:
 
 benchmark: clean
 	go test -run=Bench -bench=. ./...
+
+makerequests:
+	curl -i localhost:8080/v1/contract
+	curl -i -XPOST http://localhost:8080/v1/contract -d '{"id": "123", "name": "test0"}'
+	curl -i localhost:8080/v1/contract
+	curl -i -XPOST http://localhost:8080/v1/contract -d '{"id": "124", "name": "test1"}'
+	curl -i localhost:8080/v1/contract
+	curl -i -XPOST http://localhost:8080/v1/contract -d '{"id": "125", "name": "test2"}'
+	curl -i localhost:8080/v1/contract
+	curl -i -XPOST http://localhost:8080/v1/contract -d '{"id": "126", "name": "test3"}'
+	curl -i localhost:8080/v1/contract
+	curl -i -XPOST http://localhost:8080/v1/contract -d '{"id": "127", "name": "test4"}'
+	curl -i localhost:8080/v1/contract
+	curl -i -XPOST http://localhost:8080/v1/contract -d '{"id": "128", "name": "test5"}'

@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -25,10 +26,11 @@ type ResponseRecord struct {
 }
 
 type Record struct {
-	ID       int            `json:"id"`
-	ReqID    uuid.UUID      `json:"reqId"`
-	Request  RequestRecord  `json:"request"`
-	Response ResponseRecord `json:"response"`
+	ID          int            `json:"id"`
+	RequestDate time.Time      `json:"requestDate"`
+	ReqID       uuid.UUID      `json:"reqId"`
+	Request     RequestRecord  `json:"request"`
+	Response    ResponseRecord `json:"response"`
 }
 
 func NewRecord(r *http.Request) *Record {
@@ -42,7 +44,8 @@ func NewRecord(r *http.Request) *Record {
 	log.Printf("---\nrequest body:\n%s\n---", string(body))
 
 	return &Record{
-		ReqID: uuid.New(),
+		ReqID:       uuid.New(),
+		RequestDate: time.Now(),
 		Request: RequestRecord{
 			Path:   r.URL.Path,
 			Method: r.Method,

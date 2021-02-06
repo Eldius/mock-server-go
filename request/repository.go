@@ -16,6 +16,7 @@ const (
 create table if not exists REQUEST (
 	ID integer NOT NULL PRIMARY KEY AUTOINCREMENT,
 	REQ_ID varchar(50),
+	REQ_DATE timestamp,
 	PATH varchar(255),
 	METHOD varchar(15),
 	REQUEST varchar(4000),
@@ -40,8 +41,10 @@ insert into REQUEST (
 	, RESPONSE
 	, RESPONSE_CODE
 	, REQ_ID
+	, REQ_DATE
 ) values (
 	?
+	, ?
 	, ?
 	, ?
 	, ?
@@ -63,7 +66,7 @@ insert into HEADERS (
 )
 `
 
-	selectRequests = `SELECT ID, REQ_ID, PATH, METHOD, REQUEST, RESPONSE, RESPONSE_CODE FROM REQUEST`
+	selectRequests = `SELECT ID, REQ_ID, REQ_DATE, PATH, METHOD, REQUEST, RESPONSE, RESPONSE_CODE FROM REQUEST`
 )
 
 func initDB() *sql.DB {
@@ -110,7 +113,7 @@ func openDB() *sql.DB {
 
 func Persist(r *Record) {
 	db := initDB()
-	if result, err := db.Exec(insertRequest, r.Request.Path, r.Request.Method, r.Request.Body, r.Response.Body, r.Response.Code, r.ReqID); err != nil {
+	if result, err := db.Exec(insertRequest, r.Request.Path, r.Request.Method, r.Request.Body, r.Response.Body, r.Response.Code, r.ReqID, r.RequestDate); err != nil {
 		log.Println("Failed to insert request to db")
 		log.Fatal(err.Error())
 	} else {
@@ -155,6 +158,7 @@ func GetRequests() []Record {
 			_ = row.Scan(
 				&record.ID,             // ID
 				&record.ReqID,          // REQ_ID
+				&record.RequestDate,    // REQ_DATE
 				&record.Request.Path,   // PATH
 				&record.Request.Method, // METHOD
 				&record.Request.Body,   // REQUEST

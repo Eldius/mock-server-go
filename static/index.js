@@ -3,10 +3,20 @@
 
     function fillRoutesFile() {
         let xmlHttp = new XMLHttpRequest();
+        let respBody = "";
         xmlHttp.open("GET", "/route", false);
         xmlHttp.setRequestHeader("Accept", "application/yaml")
         xmlHttp.send(null);
-        document.querySelector("#routes-config-file").innerHTML = xmlHttp.responseText;
+        respBody = xmlHttp.responseText;
+        document.querySelector("#routes-config-file").innerHTML = respBody;
+
+        let link = document.createElement("a");
+        link.classList = ["btn btn-primary"]
+        link.href = "data:application/yaml;base64," + btoa(respBody);
+        link.download = "routes.yaml";
+        link.innerText = "Download config file here";
+
+        document.querySelector("#config-file-card").appendChild(link);
     }
 
     function fillRoutesList() {
@@ -38,6 +48,10 @@
             let colReqId = tr.appendChild(document.createElement("td")); // ReqID
             colReqId.innerHTML = el.reqId;
             tr.appendChild(colReqId);
+
+            let colReqDate = tr.appendChild(document.createElement("td")); // ReqDate
+            colReqDate.innerHTML = el.requestDate;
+            tr.appendChild(colReqDate);
 
             let colMothod = document.createElement("th"); // Method
             colMothod.innerHTML = el.request.method;
