@@ -78,5 +78,6 @@ func StartAdminServer(port int, r *mapper.Router) {
 
 	host := fmt.Sprintf(":%d", port)
 
+	fmt.Printf("Starting admin server on port %d\n", port)
 	log.Println(http.ListenAndServe(host, mux))
 }

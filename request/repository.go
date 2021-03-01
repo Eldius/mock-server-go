@@ -1,7 +1,10 @@
 package request
 
 import (
+	"context"
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"log"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -112,6 +115,7 @@ func openDB() *sql.DB {
 }
 
 func Persist(r *Record) {
+	debug(r)
 	db := initDB()
 	if result, err := db.Exec(insertRequest, r.Request.Path, r.Request.Method, r.Request.Body, r.Response.Body, r.Response.Code, r.ReqID, r.RequestDate); err != nil {
 		log.Println("Failed to insert request to db")
@@ -119,23 +123,34 @@ func Persist(r *Record) {
 	} else {
 		log.Println(result)
 		reqId, _ := result.LastInsertId()
-		for k, v := range r.Request.Headers {
-			_, _ = db.Exec(
-				insertHeader,
-				k,     // NAME
-				v,     // VALUE
-				reqId, // REQUEST_ID
-				"IN",  // HEADER_TYPE
-			)
+		for k, v_ := range r.Request.Headers {
+			for _, v := range v_ {
+
+				if _, err = db.ExecContext(
+					context.Background(),
+					insertHeader,
+					k,     // NAME
+					v,     // VALUE
+					reqId, // REQUEST_ID
+					"IN",  // HEADER_TYPE
+				); err != nil {
+					log.Printf("Failed to insert request headers\n%s\n", err)
+				}
+			}
 		}
-		for k, v := range r.Response.Headers {
-			_, _ = db.Exec(
-				insertHeader,
-				k,     // NAME
-				v,     // VALUE
-				reqId, // REQUEST_ID
-				"OUT", // HEADER_TYPE
-			)
+		for k, v_ := range r.Response.Headers {
+			for _, v := range v_ {
+				if _, err = db.ExecContext(
+					context.Background(),
+					insertHeader,
+					k,     // NAME
+					v,     // VALUE
+					reqId, // REQUEST_ID
+					"OUT", // HEADER_TYPE
+				); err != nil {
+					log.Printf("Failed to insert request headers\n%s\n", err)
+				}
+			}
 		}
 
 	}
@@ -170,4 +185,9 @@ func GetRequests() []Record {
 	}
 
 	return records
+}
+
+func debug(obj interface{}) {
+	dbg, _ := json.Marshal(obj)
+	fmt.Println(string(dbg))
 }
