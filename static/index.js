@@ -65,9 +65,35 @@
             colRequest.innerHTML = el.request.body;
             tr.appendChild(colRequest);
 
+            let colRequestHeaders = document.createElement("th"); // Request Headers
+            let divReqHeaders = document.createElement("div");
+            colRequestHeaders.appendChild(divReqHeaders);
+            Object.keys(el.request.headers).forEach(key => {
+                let obj = el.response.headers;
+                let values = obj[key];
+                console.log(key, values);
+                let p = document.createElement("p");
+                p.innerHTML = key + ": " + values.join("; ")
+                divReqHeaders.appendChild(p);
+            });
+            tr.appendChild(colRequestHeaders);
+
             let colResponse = document.createElement("th"); // Response
             colResponse.innerHTML = el.response.body;
             tr.appendChild(colResponse);
+
+            let colResponseHeaders = document.createElement("th"); // Response Headers
+            let divResHeaders = document.createElement("div");
+            colResponseHeaders.appendChild(divResHeaders);
+            Object.keys(el.response.headers).forEach(key => {
+                let obj = el.response.headers;
+                let values = obj[key];
+                console.log(key, values);
+                let p = document.createElement("p");
+                p.innerHTML = key + ": " + values.join("; ")
+                divResHeaders.appendChild(p);
+            });
+            tr.appendChild(colResponseHeaders);
 
             let colStatusCode = document.createElement("th"); // Code
             colStatusCode.innerHTML = el.response.code;

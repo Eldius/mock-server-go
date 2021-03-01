@@ -69,7 +69,18 @@ insert into HEADERS (
 )
 `
 
-	selectRequests = `SELECT ID, REQ_ID, REQ_DATE, PATH, METHOD, REQUEST, RESPONSE, RESPONSE_CODE FROM REQUEST`
+	selectRequests       = `SELECT ID, REQ_ID, REQ_DATE, PATH, METHOD, REQUEST, RESPONSE, RESPONSE_CODE FROM REQUEST`
+	selectRequestHeaders = `
+-- SQLite
+SELECT
+    NAME,
+    VALUE
+FROM
+    HEADERS
+WHERE
+    REQUEST_ID = ?
+    AND HEADER_TYPE = ?
+`
 )
 
 func initDB() *sql.DB {
@@ -180,6 +191,28 @@ func GetRequests() []Record {
 				&record.Response.Body,  // RESPONSE
 				&record.Response.Code,  // RESPONSE_CODE
 			)
+			if reqHeadersRow, err := db.Query(selectRequestHeaders, record.ID, "IN"); err == nil {
+				var reqHeaders Headers = make(Headers)
+				for reqHeadersRow.Next() { // Iterate and fetch the records from result cursor
+					var key, value string
+					_ = reqHeadersRow.Scan(&key, &value)
+					reqHeaders[key] = append(reqHeaders[key], value)
+				}
+				record.Request.Headers = reqHeaders
+			} else {
+				log.Printf("Failed to fetch request headers\n%s\n", err)
+			}
+			if resHeadersRow, err := db.Query(selectRequestHeaders, record.ID, "OUT"); err == nil {
+				var resHeaders Headers = make(Headers)
+				for resHeadersRow.Next() { // Iterate and fetch the records from result cursor
+					var key, value string
+					_ = resHeadersRow.Scan(&key, &value)
+					resHeaders[key] = append(resHeaders[key], value)
+				}
+				record.Response.Headers = resHeaders
+			} else {
+				log.Printf("Failed to fetch response headers\n%s\n", err)
+			}
 			records = append(records, record)
 		}
 	}
