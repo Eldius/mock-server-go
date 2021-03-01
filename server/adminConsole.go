@@ -2,7 +2,6 @@ package server
 
 import (
 	"html/template"
-	"log"
 	"net/http"
 	"os"
 
@@ -18,7 +17,7 @@ func init() {
 	if _, err := os.Stat("server/templates/index.html"); err == nil {
 		tmpl = template.Must(template.ParseGlob("server/templates/*.html"))
 	} else {
-		log.Println("Admin console is disabled")
+		log.WithError(err).Println("Admin console is disabled")
 		adminConsole = false
 	}
 }
@@ -32,7 +31,7 @@ func AdminPanelHandler(router *mapper.Router) func(rw http.ResponseWriter, r *ht
 		}
 		err := tmpl.ExecuteTemplate(rw, "index.html", router)
 		if err != nil {
-			log.Printf("Failed to parse template: %s\n", err)
+			log.WithError(err).Printf("Failed to parse template")
 		}
 	}
 }

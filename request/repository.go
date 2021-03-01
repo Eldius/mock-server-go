@@ -3,15 +3,15 @@ package request
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
-	"fmt"
-	"log"
 
+	"github.com/Eldius/mock-server-go/logger"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/sirupsen/logrus"
 )
 
 var (
-	db *sql.DB
+	db  *sql.DB
+	log = logger.Log()
 )
 
 const (
@@ -101,25 +101,23 @@ func openDB() *sql.DB {
 		log.Println("Create request table...")
 		statement, err := db.Prepare(createTableRequest) // Prepare SQL Statement
 		if err != nil {
-			log.Fatal(err.Error())
+			log.WithError(err).Error("Failed to prepare statement to create requests table")
 		}
-		result, err := statement.Exec() // Execute SQL Statements
+		_, err = statement.Exec() // Execute SQL Statements
 		if err != nil {
-			log.Printf("Failed to insert record\n%s", err.Error())
+			log.WithError(err).Error("Failed to create requests table")
 		}
-		log.Println(result.RowsAffected())
 		statement, err = db.Prepare(createTableHeader) // Prepare SQL Statement
 		if err != nil {
-			log.Fatal(err.Error())
+			log.WithError(err).Error("Failed to prepare statement to create headers table")
 		}
-		result, err = statement.Exec() // Execute SQL Statements
+		_, err = statement.Exec() // Execute SQL Statements
 		if err != nil {
-			log.Printf("Failed to insert record\n%s", err.Error())
+			log.WithError(err).Error("Failed to create headers table")
 		}
-		log.Println(result.RowsAffected())
-		log.Println("request table created")
+		log.Println("tables created")
 	} else {
-		log.Fatalf("Failed to open database\n%s", err.Error())
+		log.WithError(err).Fatal("Failed to open database")
 	}
 
 	return db
@@ -129,10 +127,12 @@ func Persist(r *Record) {
 	debug(r)
 	db := initDB()
 	if result, err := db.Exec(insertRequest, r.Request.Path, r.Request.Method, r.Request.Body, r.Response.Body, r.Response.Code, r.ReqID, r.RequestDate); err != nil {
-		log.Println("Failed to insert request to db")
-		log.Fatal(err.Error())
+		log.WithError(err).
+			WithFields(logrus.Fields{
+				"record": r,
+			}).
+			Warn("Failed to insert new request to db")
 	} else {
-		log.Println(result)
 		reqId, _ := result.LastInsertId()
 		for k, v_ := range r.Request.Headers {
 			for _, v := range v_ {
@@ -145,7 +145,13 @@ func Persist(r *Record) {
 					reqId, // REQUEST_ID
 					"IN",  // HEADER_TYPE
 				); err != nil {
-					log.Printf("Failed to insert request headers\n%s\n", err)
+					log.WithError(err).
+						WithFields(logrus.Fields{
+							"headerKey":   k,
+							"headerValue": v,
+							"headerType":  "IN",
+						}).
+						Warn("Failed to insert request headers")
 				}
 			}
 		}
@@ -159,7 +165,13 @@ func Persist(r *Record) {
 					reqId, // REQUEST_ID
 					"OUT", // HEADER_TYPE
 				); err != nil {
-					log.Printf("Failed to insert request headers\n%s\n", err)
+					log.WithError(err).
+						WithFields(logrus.Fields{
+							"headerKey":   k,
+							"headerValue": v,
+							"headerType":  "OUT",
+						}).
+						Warn("Failed to insert request headers")
 				}
 			}
 		}
@@ -171,8 +183,8 @@ func GetRequests() []Record {
 	records := make([]Record, 0)
 	db := initDB()
 	if row, err := db.Query(selectRequests); err != nil {
-		log.Println("Failed to list requests")
-		log.Printf("Failed to query requests\n%s\n", err.Error())
+		log.WithError(err).
+			Warn("Failed to query requests")
 	} else {
 		defer row.Close()
 		for row.Next() { // Iterate and fetch the records from result cursor
@@ -200,7 +212,7 @@ func GetRequests() []Record {
 				}
 				record.Request.Headers = reqHeaders
 			} else {
-				log.Printf("Failed to fetch request headers\n%s\n", err)
+				log.WithError(err).Warn("Failed to fetch request headers")
 			}
 			if resHeadersRow, err := db.Query(selectRequestHeaders, record.ID, "OUT"); err == nil {
 				var resHeaders Headers = make(Headers)
@@ -211,7 +223,7 @@ func GetRequests() []Record {
 				}
 				record.Response.Headers = resHeaders
 			} else {
-				log.Printf("Failed to fetch response headers\n%s\n", err)
+				log.WithError(err).Warn("Failed to fetch response headers")
 			}
 			records = append(records, record)
 		}
@@ -221,6 +233,5 @@ func GetRequests() []Record {
 }
 
 func debug(obj interface{}) {
-	dbg, _ := json.Marshal(obj)
-	fmt.Println(string(dbg))
+	log.Debug(obj)
 }

@@ -3,11 +3,11 @@ package request
 import (
 	"bytes"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 )
 
 type Headers map[string][]string
@@ -36,12 +36,14 @@ type Record struct {
 func NewRecord(r *http.Request) *Record {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("Failed to read request body\n%s", err.Error())
+		log.WithError(err).Printf("Failed to read request body")
 		return nil
 	}
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
-	log.Printf("---\nrequest body:\n%s\n---", string(body))
+	log.WithFields(logrus.Fields{
+		"body": string(body),
+	}).Debug("request body")
 
 	return &Record{
 		ReqID:       uuid.New(),

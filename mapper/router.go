@@ -1,11 +1,11 @@
 package mapper
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"strings"
 
+	"github.com/Eldius/mock-server-go/logger"
 	"github.com/Eldius/mock-server-go/request"
 	"gopkg.in/yaml.v3"
 )
@@ -16,6 +16,8 @@ Router is responsible to manage requests handling
 type Router struct {
 	Routes []RequestMapping `json:"routes" yaml:"routes"`
 }
+
+var log = logger.Log()
 
 /*
 NewRouter creates a new Router
@@ -58,8 +60,7 @@ func ImportMappingYaml(source string) Router {
 	var r Router
 	f, err := os.Open(source)
 	if err != nil {
-		log.Println("Failed to parse mapping file")
-		log.Fatalln(err.Error())
+		log.WithError(err).Println("Failed to parse mapping file")
 	}
 	defer f.Close()
 	_ = yaml.NewDecoder(f).Decode(&r)

@@ -3,13 +3,16 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
+	"github.com/Eldius/mock-server-go/logger"
 	"github.com/Eldius/mock-server-go/mapper"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )
+
+var log = logger.Log()
 
 func RouteHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http.Request) {
 	return func(rw http.ResponseWriter, r *http.Request) {
@@ -18,8 +21,8 @@ func RouteHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http.Re
 			var mapping mapper.RequestMapping
 			err := json.NewDecoder(r.Body).Decode(&mapping)
 			if err != nil {
-				log.Println("Failed to read request body")
-				log.Println(err.Error())
+				log.WithError(err).
+					Error("Failed to read request body")
 				rw.WriteHeader(500)
 				_, _ = rw.Write([]byte(err.Error()))
 				return
@@ -32,7 +35,7 @@ func RouteHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http.Re
 		} else if r.Method == "GET" {
 			encodeResponse(router, r, rw)
 		} else {
-			log.Println("returning: 'Method not allowed'")
+			log.Warn("returning: 'Method not allowed'")
 			rw.WriteHeader(405)
 		}
 	}
@@ -41,14 +44,23 @@ func RouteHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http.Re
 func RequestsHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http.Request) {
 
 	return func(rw http.ResponseWriter, r *http.Request) {
+		_log := log.WithFields(logrus.Fields{
+			"path":   r.URL.Path,
+			"method": r.Method,
+		})
 		if r.Method != "GET" {
-			log.Println("returning: 'Method not allowed'")
-			rw.WriteHeader(405)
+			rw.WriteHeader(http.StatusMethodNotAllowed)
+			_log.WithFields(logrus.Fields{
+				"code": http.StatusMethodNotAllowed,
+			}).Warn("Method not allowed")
 			return
 		}
 
 		rw.Header().Set("Content-Type", "application/json")
-		rw.WriteHeader(200)
+		rw.WriteHeader(http.StatusOK)
+		_log.WithFields(logrus.Fields{
+			"code": http.StatusOK,
+		}).Debug("OK")
 		_ = json.NewEncoder(rw).Encode(router.GetRequests())
 	}
 }
@@ -78,6 +90,6 @@ func StartAdminServer(port int, r *mapper.Router) {
 
 	host := fmt.Sprintf(":%d", port)
 
-	fmt.Printf("Starting admin server on port %d\n", port)
-	log.Println(http.ListenAndServe(host, mux))
+	log.Infof("Starting admin server on port %d\n", port)
+	log.WithError(http.ListenAndServe(host, mux)).Error("Failed to start HTTP server")
 }
