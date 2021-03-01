@@ -68,9 +68,8 @@
             let colRequestHeaders = document.createElement("th"); // Request Headers
             let divReqHeaders = document.createElement("div");
             colRequestHeaders.appendChild(divReqHeaders);
-            Object.keys(el.request.headers).forEach(key => {
-                let obj = el.response.headers;
-                let values = obj[key];
+            Object.entries(el.request.headers).forEach(entry => {
+                const [key, values] = entry;
                 console.log(key, values);
                 let p = document.createElement("p");
                 p.innerHTML = key + ": " + values.join("; ")
@@ -85,9 +84,9 @@
             let colResponseHeaders = document.createElement("th"); // Response Headers
             let divResHeaders = document.createElement("div");
             colResponseHeaders.appendChild(divResHeaders);
-            Object.keys(el.response.headers).forEach(key => {
-                let obj = el.response.headers;
-                let values = obj[key];
+            console.log(JSON.stringify(el.response.headers));
+            Object.entries(el.response.headers).forEach(entry => {
+                const [key, values] = entry;
                 console.log(key, values);
                 let p = document.createElement("p");
                 p.innerHTML = key + ": " + values.join("; ")

@@ -47,9 +47,10 @@ func NewRecord(r *http.Request) *Record {
 		ReqID:       uuid.New(),
 		RequestDate: time.Now(),
 		Request: RequestRecord{
-			Path:   r.URL.Path,
-			Method: r.Method,
-			Body:   string(body),
+			Path:    r.URL.Path,
+			Method:  r.Method,
+			Body:    string(body),
+			Headers: Headers(r.Header),
 		},
 	}
 }
