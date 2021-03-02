@@ -79,7 +79,7 @@ func (r *Router) Handle(rw http.ResponseWriter, req *http.Request) {
 	record := request.NewRecord(req)
 	mapping := r.Route(req)
 	if mapping != nil {
-		r.AddRequest(record.AddResponse(mapping.MakeResponse(rw)))
+		r.AddRequest(record.AddResponse(mapping.MakeResponse(rw, req)))
 	} else {
 		rw.WriteHeader(404)
 		rw.Header().Add("Content-Type", "text/plain")

@@ -2,6 +2,8 @@ package mapper
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -121,7 +123,7 @@ func TestMakeResponse(t *testing.T) {
 	sourcePath := "samples/mapping_file_test.yml"
 	r := ImportMappingYaml(sourcePath)
 	rec := httptest.NewRecorder()
-	r.Routes[0].MakeResponse(rec)
+	r.Routes[0].MakeResponse(rec, httptest.NewRequest("POST", "/v1/contract", nil))
 	respBody := rec.Body.String()
 	if respBody != "" {
 		t.Errorf("Response body must be empty, but was '%s'", respBody)
@@ -131,7 +133,7 @@ func TestMakeResponse(t *testing.T) {
 	}
 
 	rec1 := httptest.NewRecorder()
-	r.Routes[1].MakeResponse(rec1)
+	r.Routes[1].MakeResponse(rec1, httptest.NewRequest("GET", "/v1/contract", nil))
 	respBody1 := rec1.Body.String()
 	if respBody1 != `{"id": 123, "name": "My Contract"}` {
 		t.Errorf(`Response body must be '{"id": 123, "name": "My Contract"}', but was '%s'`, respBody1)
@@ -244,4 +246,94 @@ func TestHandleRequestGotNotFound(t *testing.T) {
 	if !strings.HasPrefix(resContentType, "text/plain") {
 		t.Fatalf(`Get response must contain header 'Content-Type' equals to 'text/plain', but has '%s'`, resContentType)
 	}
+}
+
+func TestRequestMappingParseScript(t *testing.T) {
+	r := RequestMapping{
+		Method: "POST",
+		Response: MockResponse{
+			Body: `script:javascript:
+        console.log(req.body);
+        var body = JSON.parse(req.body);
+        console.log(body);
+        var res = {};
+        if (body.contract) {
+          res.code = 200;
+          res.body = JSON.stringify({
+            "contract": body.contract,
+            "status": "OK"
+          });
+        } else {
+          res.code = 200;
+          res.body = JSON.stringify({"PING": "pong"});
+        }`,
+		},
+	}
+
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/v1/test", bytes.NewBuffer([]byte(`{"contract": 1234}`)))
+	body, code, err := r.parseScript(rw, req)
+	if err != nil {
+		t.Errorf("Failed to execute script\n%s\n", err)
+	}
+
+	var bodyMap map[string]interface{}
+	err = json.Unmarshal([]byte(body), &bodyMap)
+	if err != nil {
+		t.Errorf("Failed to parse body to a map\n%s\n", err)
+	}
+	if bodyMap["contract"] != float64(1234) {
+		t.Errorf("body.contract should be '1234', but was '%d'", bodyMap["contract"])
+	}
+	if bodyMap["status"] != "OK" {
+		t.Errorf("body.contract should be 'OK', but was '%s'", bodyMap["status"])
+	}
+
+	if code != 200 {
+		t.Errorf("Response code should be '200', but was '%d'", code)
+	}
+}
+
+func TestRequestMappingParseScriptExecutionError(t *testing.T) {
+	r := RequestMapping{
+		Method: "POST",
+		Response: MockResponse{
+			Body: `script:javascript:
+				throw new Error("Holy crap!")
+			`,
+		},
+	}
+
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/v1/test", bytes.NewBuffer([]byte(`{"contract": 1234}`)))
+	_, _, err := r.parseScript(rw, req)
+	if err == nil {
+		t.Errorf("Failed to execute script\n%s\n", err)
+	}
+
+	if !strings.Contains(err.Error(), `throw new Error("Holy crap!")`) {
+		t.Error("Exception must contains script content")
+	}
+}
+
+func TestRequestMappingParseScriptInvalidScript(t *testing.T) {
+	r := RequestMapping{
+		Method: "POST",
+		Response: MockResponse{
+			Body: `script:javascript:
+				_1234;
+			`,
+		},
+	}
+
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/v1/test", bytes.NewBuffer([]byte(`{"contract": 1234}`)))
+	_, _, err := r.parseScript(rw, req)
+	if err == nil {
+		t.Errorf("Failed to execute script\n%s\n", err)
+	}
+	if !strings.Contains(err.Error(), `_1234;`) {
+		t.Error("Exception must contains script content")
+	}
+
 }
