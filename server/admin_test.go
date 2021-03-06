@@ -248,3 +248,49 @@ func TestRouteHandlerMethodNotAllowed(t *testing.T) {
 		t.Errorf("Response code must be '405', but was '%d'", res.StatusCode)
 	}
 }
+
+func TestRequestsHandler(t *testing.T) {
+	r := mapper.ImportMappingYaml(mappingFile)
+	h := RequestsHandler(&r)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/request", h)
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	url := fmt.Sprintf("%s/request", server.URL)
+
+	c := http.Client{}
+	res, err := c.Get(url)
+	if err != nil {
+		t.Errorf("Failed to make request\n%s", err.Error())
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("Response code must be '200', but was '%d'", res.StatusCode)
+	}
+}
+
+func TestRequestsHandlerMethodNotAllowed(t *testing.T) {
+	r := mapper.ImportMappingYaml(mappingFile)
+	h := RequestsHandler(&r)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/request", h)
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	url := fmt.Sprintf("%s/request", server.URL)
+
+	c := http.Client{}
+	res, err := c.Post(url, "", nil)
+	if err != nil {
+		t.Errorf("Failed to make request\n%s", err.Error())
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusMethodNotAllowed {
+		t.Errorf("Response code must be '405', but was '%d'", res.StatusCode)
+	}
+}
