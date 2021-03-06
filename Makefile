@@ -31,3 +31,9 @@ makerequests:
 	curl -i -XPOST http://localhost:8080/v1/contract -d '{"id": "127", "name": "test4"}' -H 'Content-Type: application/json'
 	curl -i localhost:8080/v1/contract
 	curl -i -XPOST http://localhost:8080/v1/contract -d '{"id": "128", "name": "test5"}' -H 'Content-Type: application/json'
+	curl -i -XPOST http://localhost:8080/v1/contract -d '{"id": "128", "name": "test5"}' -H 'Content-Type: application/json'
+	curl -i -XPOST http://localhost:8080/v1/contract -d '{"id": "128", "name": "test5"}' -H 'Content-Type: application/json'
+	curl -i -XPOST http://localhost:8080/v2/test -d '{"id": "128", "contract": 123450, "name": "test0"}' -H 'Content-Type: application/json'
+	curl -i -XPOST http://localhost:8080/v2/test -d '{"id": "128", "contract": 123451, "name": "test1"}' -H 'Content-Type: application/json'
+	curl -i -XPOST http://localhost:8080/v2/test -d '{"id": "128", "contract": 123452, "name": "test2"}' -H 'Content-Type: application/json'
+	curl -i -XPOST http://localhost:8080/v2/test -d '{"id": "128", "contract": 123453, "name": "test3"}' -H 'Content-Type: application/json'
