@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/Eldius/mock-server-go/logger"
@@ -12,7 +13,17 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var log = logger.Log()
+var (
+	adminConsole bool = true
+	log               = logger.Log()
+)
+
+func init() {
+	if _, err := os.Stat("static/index.html"); err != nil {
+		log.WithError(err).Println("Admin console is disabled")
+		adminConsole = false
+	}
+}
 
 func RouteHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http.Request) {
 	return func(rw http.ResponseWriter, r *http.Request) {
@@ -82,8 +93,7 @@ func StartAdminServer(port int, r *mapper.Router) {
 	mux := http.NewServeMux()
 	if adminConsole {
 		fs := http.FileServer(http.Dir("./static"))
-		mux.Handle("/static/", http.StripPrefix("/static/", fs))
-		mux.HandleFunc("/", AdminPanelHandler(r))
+		mux.Handle("/", fs)
 	}
 	mux.HandleFunc("/route", RouteHandler(r))
 	mux.HandleFunc("/request", RequestsHandler(r))
