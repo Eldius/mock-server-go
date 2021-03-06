@@ -33,28 +33,41 @@
         <br />
 
         <div class="row">
-            <div class="card col-sm">
+            <div class="card col-sm" id="routes">
                 <div class="card-body">
                     <h5 class="card-title">Routes</h5>
                     <div class="card-text">
                         <ul class="list-group my-routes-list" id="my-routes-list">
+                            <li v-for="r in routes">
+                                [{{ r.method }}] {{ r.path }}
+                              </li>
                         </ul>
+                    </div>
+                    <div class="card-footer">
+                        <button v-on:click="refresh" class="btn btn-primary glyphicon glyphicon-refresh">Refresh</button>
                     </div>
                     <!--<a href="#" id="addRoute" class="btn btn-primary">Add Route</a>-->
                 </div>
             </div>
-            <div class="card col-sm">
+            <div class="card col-sm" id="routes_file">
                 <h5 class="card-title">Routes file</h5>
                 <div class="card-body card-text" id="config-file-card">
-                    <pre class="my-routes-config" id="routes-config-file"></pre>
+                    <pre class="my-routes-config" id="routes-config-file">{{ fileContent }}</pre>
+                </div>
+                <div class="card-footer">
+                    <button v-on:click="refreshFile" class="btn btn-primary glyphicon glyphicon-refresh">Refresh</button>
+                    <a class="btn btn-secondary glyphicon glyphicon-refresh" v-bind:href="link.href" download="routes.yaml" :class="{disabled: isDownloadDisabled}" >{{ link.text }}</a>
                 </div>
             </div>
         </div>
         <hr />
         <br />
 
-        <div class="row">
+        <div class="row"  id="requestsTable">
             <table class="table table-striped">
+                <p>
+                    <button v-on:click="refreshTable" class="btn btn-primary">Refresh</button>
+                </p>
                 <thead class="table-dark">
                     <tr>
                         <th scope="col">ID</th>
@@ -70,6 +83,18 @@
                     </tr>
                 </thead>
                 <tbody id="requests-tbody">
+                    <tr v-for="req in requests">
+                        <td>{{ req.id }}</td> <!-- ID -->
+                        <td>{{ req.reqId }}</td> <!-- ReqID -->
+                        <td>{{ req.requestDate }}</td> <!-- Request Date -->
+                        <td>{{ req.request.method }}</td> <!-- Method -->
+                        <td>{{ req.request.path }}</td> <!-- Path -->
+                        <td>{{ req.request.body }}</td> <!-- Request -->
+                        <td>{{ req.request.headers }}</td> <!-- Request Headers -->
+                        <td>{{ req.response.body }}</td> <!-- Response -->
+                        <td>{{ req.response.headers }}</td> <!-- Response Headers -->
+                        <td>{{ req.response.code }}</td> <!-- Status Code -->
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -82,13 +107,15 @@
         </div>
     </footer>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
-        crossorigin="anonymous"></script>
+    <!--<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+        crossorigin="anonymous"></script>-->
 
-    <script src="https://unpkg.com/bootstrap-table@1.18.2/dist/bootstrap-table.min.js"></script>
+    <!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+        crossorigin="anonymous"></script>-->
+
+    <!--<script src="https://unpkg.com/bootstrap-table@1.18.2/dist/bootstrap-table.min.js"></script>-->
+    <script src="https://unpkg.com/vue@next"></script>
     <script type="application/javascript" src="/js/index.js"></script>
 </body>
 

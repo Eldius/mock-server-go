@@ -1,115 +1,79 @@
 
 (document.onload = function () {
 
-    function fillRoutesFile() {
-        let xmlHttp = new XMLHttpRequest();
-        let respBody = "";
-        xmlHttp.open("GET", "/route", false);
-        xmlHttp.setRequestHeader("Accept", "application/yaml")
-        xmlHttp.send(null);
-        respBody = xmlHttp.responseText;
-        document.querySelector("#routes-config-file").innerHTML = respBody;
+    const RoutesHandling = {
+        data() {
+            return {
+                routes: []
+            }
+        },
+        methods: {
+            refresh() {
+                fetch('/route')
+                    .then((resp) => resp.json())
+                    .then((data) => {
+                        console.log(data);
+                        console.log(JSON.stringify(data.routes));
+                        this.routes = data.routes;
+                    })
+                    .catch(function (err) {
+                        console.log(err);
+                    });
+            }
+        }
+    };
+    const RoutesFileHandling = {
+        data() {
+            return {
+                fileContent: "",
+                link: {
+                    href: "javascript:void(0);",
+                    text: "Download config file here",
+                    isDownloadDisabled: true
+                }
+            }
+        },
+        methods: {
+            refreshFile() {
+                fetch('/route', {
+                    headers: {
+                        Accept: 'application/yaml'
+                    }
+                })
+                    .then((resp) => resp.text())
+                    .then((data) => {
+                        this.fileContent = data;
+                        this.link.href = "data:application/yaml;base64," + btoa(data);
+                        this.link.isDownloadDisabled = false;
+                    })
+                    .catch(function (err) {
+                        console.log(err);
+                    });
+            }
+        }
+    };
+    const RequestsHandling = {
+        data() {
+            return {
+                requests: [],
+            }
+        },
+        methods: {
+            refreshTable() {
+                fetch('/request')
+                    .then((resp) => resp.json())
+                    .then((data) => {
+                        this.requests = data;
+                    })
+                    .catch(function (err) {
+                        console.log(err);
+                    });
+            }
+        }
+    };
 
-        let link = document.createElement("a");
-        link.classList = ["btn btn-primary"]
-        link.href = "data:application/yaml;base64," + btoa(respBody);
-        link.download = "routes.yaml";
-        link.innerText = "Download config file here";
+    Vue.createApp(RoutesHandling).mount('#routes');
+    Vue.createApp(RoutesFileHandling).mount('#routes_file');
+    Vue.createApp(RequestsHandling).mount('#requestsTable');
 
-        document.querySelector("#config-file-card").appendChild(link);
-    }
-
-    function fillRoutesList() {
-        let xmlHttp = new XMLHttpRequest();
-        xmlHttp.open("GET", "/route", false);
-        xmlHttp.send(null);
-        JSON.parse(xmlHttp.response).routes.forEach(element => {
-            var li = document.createElement("li");
-            li.classList = ["list-group-item"];
-            var text = document.createTextNode(`[${element.method}] ${element.path}`);
-            li.appendChild(text);
-
-            var element = document.querySelector("#my-routes-list");
-            element.appendChild(li);
-        });
-    }
-
-    function fillRequestList() {
-        let xmlHttp = new XMLHttpRequest();
-        xmlHttp.open("GET", "/request", false);
-        xmlHttp.send(null);
-        JSON.parse(xmlHttp.responseText).forEach(el => {
-            let tr = document.createElement("tr");
-            let colID = document.createElement("th"); // ID
-            colID.scope = ["row"];
-            colID.innerHTML = el.id;
-            tr.appendChild(colID);
-
-            let colReqId = tr.appendChild(document.createElement("td")); // ReqID
-            colReqId.innerHTML = el.reqId;
-            tr.appendChild(colReqId);
-
-            let colReqDate = tr.appendChild(document.createElement("td")); // ReqDate
-            colReqDate.innerHTML = el.requestDate;
-            tr.appendChild(colReqDate);
-
-            let colMothod = document.createElement("th"); // Method
-            colMothod.innerHTML = el.request.method;
-            tr.appendChild(colMothod);
-
-            let colPath = document.createElement("th"); // Path
-            colPath.innerHTML = el.request.path;
-            tr.appendChild(colPath);
-
-            let colRequest = document.createElement("th"); // Request
-            colRequest.innerHTML = el.request.body;
-            tr.appendChild(colRequest);
-
-            let colRequestHeaders = document.createElement("th"); // Request Headers
-            let divReqHeaders = document.createElement("div");
-            colRequestHeaders.appendChild(divReqHeaders);
-            Object.entries(el.request.headers).forEach(entry => {
-                const [key, values] = entry;
-                console.log(key, values);
-                let p = document.createElement("p");
-                p.innerHTML = key + ": " + values.join("; ")
-                divReqHeaders.appendChild(p);
-            });
-            tr.appendChild(colRequestHeaders);
-
-            let colResponse = document.createElement("th"); // Response
-            colResponse.innerHTML = el.response.body;
-            tr.appendChild(colResponse);
-
-            let colResponseHeaders = document.createElement("th"); // Response Headers
-            let divResHeaders = document.createElement("div");
-            colResponseHeaders.appendChild(divResHeaders);
-            console.log(JSON.stringify(el.response.headers));
-            Object.entries(el.response.headers).forEach(entry => {
-                const [key, values] = entry;
-                console.log(key, values);
-                let p = document.createElement("p");
-                p.innerHTML = key + ": " + values.join("; ")
-                divResHeaders.appendChild(p);
-            });
-            tr.appendChild(colResponseHeaders);
-
-            let colStatusCode = document.createElement("th"); // Code
-            colStatusCode.innerHTML = el.response.code;
-            tr.appendChild(colStatusCode);
-
-            document.querySelector("#requests-tbody").appendChild(tr);
-        });
-    }
-
-    function ajaxRequest() {
-        var url = '/request'
-        $.get(url).then(function (res) {
-            params.success(res);
-        })
-    }
-
-    fillRoutesFile();
-    fillRoutesList();
-    fillRequestList();
 })();
