@@ -16,74 +16,76 @@ var (
 	scripts map[string]map[string]string = make(map[string]map[string]string)
 )
 
-const (
-	createTableRequest = `
-create table if not exists REQUEST (
-	ID integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-	REQ_ID varchar(50),
-	REQ_DATE timestamp,
-	PATH varchar(255),
-	METHOD varchar(15),
-	REQUEST varchar(4000),
-	RESPONSE varchar(4000),
-	RESPONSE_CODE int
-);`
+func init() {
+	scripts["sqlite3"] = map[string]string{
+		"createTableRequest": `
+		create table if not exists REQUEST (
+			ID integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+			REQ_ID varchar(50),
+			REQ_DATE timestamp,
+			PATH varchar(255),
+			METHOD varchar(15),
+			REQUEST varchar(4000),
+			RESPONSE varchar(4000),
+			RESPONSE_CODE int
+		);`,
+		"createTableHeader": `
+		create table if not exists HEADERS (
+			ID integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+			NAME varchar(50),
+			VALUE varchar(50),
+			REQUEST_ID integer not null,
+			HEADER_TYPE varchar(10) 
+		);
+		`,
+		"insertRequest": `
+		insert into REQUEST (
+			PATH
+			, METHOD
+			, REQUEST
+			, RESPONSE
+			, RESPONSE_CODE
+			, REQ_ID
+			, REQ_DATE
+		) values (
+			?
+			, ?
+			, ?
+			, ?
+			, ?
+			, ?
+			, ?
+		)
+		`,
+		"insertHeader": `
+		insert into HEADERS (
+			NAME
+			, VALUE
+			, REQUEST_ID
+			, HEADER_TYPE
+		) values (
+			?
+			, ?
+			, ?
+			, ?
+		)
+		`,
+		"selectRequests": `SELECT ID, REQ_ID, REQ_DATE, PATH, METHOD, REQUEST, RESPONSE, RESPONSE_CODE FROM REQUEST`,
+		"selectRequestHeaders": `
+		-- SQLite
+		SELECT
+			NAME,
+			VALUE
+		FROM
+			HEADERS
+		WHERE
+			REQUEST_ID = ?
+			AND HEADER_TYPE = ?
+		`,
+	}
+}
 
-	createTableHeader = `
-create table if not exists HEADERS (
-	ID integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-	NAME varchar(50),
-	VALUE varchar(50),
-	REQUEST_ID integer not null,
-	HEADER_TYPE varchar(10) 
-);
-`
-	insertRequest = `
-insert into REQUEST (
-	PATH
-	, METHOD
-	, REQUEST
-	, RESPONSE
-	, RESPONSE_CODE
-	, REQ_ID
-	, REQ_DATE
-) values (
-	?
-	, ?
-	, ?
-	, ?
-	, ?
-	, ?
-	, ?
-)
-`
-	insertHeader = `
-insert into HEADERS (
-	NAME
-	, VALUE
-	, REQUEST_ID
-	, HEADER_TYPE
-) values (
-	?
-	, ?
-	, ?
-	, ?
-)
-`
-
-	selectRequests       = `SELECT ID, REQ_ID, REQ_DATE, PATH, METHOD, REQUEST, RESPONSE, RESPONSE_CODE FROM REQUEST`
-	selectRequestHeaders = `
--- SQLite
-SELECT
-    NAME,
-    VALUE
-FROM
-    HEADERS
-WHERE
-    REQUEST_ID = ?
-    AND HEADER_TYPE = ?
-`
-)
+const ()
 
 func initDB() *sql.DB {
 	if db == nil {
@@ -99,11 +101,12 @@ func initDB() *sql.DB {
 
 func openDB() *sql.DB {
 	var err error
-	if db, err = sql.Open(config.GetDbEngine(), config.GetDbUrl()); err == nil {
+	engine := config.GetDbEngine()
+	if db, err = sql.Open(engine, config.GetDbUrl()); err == nil {
 		log.WithFields(logrus.Fields{
 			"driver": db.Stats(),
 		}).Println("Create request table...")
-		statement, err := db.Prepare(createTableRequest) // Prepare SQL Statement
+		statement, err := db.Prepare(scripts[engine]["createTableRequest"]) // Prepare SQL Statement
 		if err != nil {
 			log.WithError(err).Error("Failed to prepare statement to create requests table")
 		}
@@ -111,7 +114,7 @@ func openDB() *sql.DB {
 		if err != nil {
 			log.WithError(err).Error("Failed to create requests table")
 		}
-		statement, err = db.Prepare(createTableHeader) // Prepare SQL Statement
+		statement, err = db.Prepare(scripts[engine]["createTableHeader"]) // Prepare SQL Statement
 		if err != nil {
 			log.WithError(err).Error("Failed to prepare statement to create headers table")
 		}
@@ -129,8 +132,9 @@ func openDB() *sql.DB {
 
 func Persist(r *Record) {
 	debug(r)
+	engine := config.GetDbEngine()
 	db := initDB()
-	if result, err := db.Exec(insertRequest, r.Request.Path, r.Request.Method, r.Request.Body, r.Response.Body, r.Response.Code, r.ReqID, r.RequestDate); err != nil {
+	if result, err := db.Exec(scripts[engine]["insertRequest"], r.Request.Path, r.Request.Method, r.Request.Body, r.Response.Body, r.Response.Code, r.ReqID, r.RequestDate); err != nil {
 		log.WithError(err).
 			WithFields(logrus.Fields{
 				"record": r,
@@ -143,7 +147,7 @@ func Persist(r *Record) {
 
 				if _, err = db.ExecContext(
 					context.Background(),
-					insertHeader,
+					scripts[engine]["insertHeader"],
 					k,     // NAME
 					v,     // VALUE
 					reqId, // REQUEST_ID
@@ -163,7 +167,7 @@ func Persist(r *Record) {
 			for _, v := range v_ {
 				if _, err = db.ExecContext(
 					context.Background(),
-					insertHeader,
+					scripts[engine]["insertHeader"],
 					k,     // NAME
 					v,     // VALUE
 					reqId, // REQUEST_ID
@@ -186,7 +190,8 @@ func Persist(r *Record) {
 func GetRequests() []Record {
 	records := make([]Record, 0)
 	db := initDB()
-	if row, err := db.Query(selectRequests); err != nil {
+	engine := config.GetDbEngine()
+	if row, err := db.Query(scripts[engine]["selectRequests"]); err != nil {
 		log.WithError(err).
 			Warn("Failed to query requests")
 	} else {
@@ -207,7 +212,7 @@ func GetRequests() []Record {
 				&record.Response.Body,  // RESPONSE
 				&record.Response.Code,  // RESPONSE_CODE
 			)
-			if reqHeadersRow, err := db.Query(selectRequestHeaders, record.ID, "IN"); err == nil {
+			if reqHeadersRow, err := db.Query(scripts[engine]["selectRequestHeaders"], record.ID, "IN"); err == nil {
 				var reqHeaders Headers = make(Headers)
 				for reqHeadersRow.Next() { // Iterate and fetch the records from result cursor
 					var key, value string
@@ -218,7 +223,7 @@ func GetRequests() []Record {
 			} else {
 				log.WithError(err).Warn("Failed to fetch request headers")
 			}
-			if resHeadersRow, err := db.Query(selectRequestHeaders, record.ID, "OUT"); err == nil {
+			if resHeadersRow, err := db.Query(scripts[engine]["selectRequestHeaders"], record.ID, "OUT"); err == nil {
 				var resHeaders Headers = make(Headers)
 				for resHeadersRow.Next() { // Iterate and fetch the records from result cursor
 					var key, value string
