@@ -11,13 +11,14 @@ import (
 )
 
 var (
-	db      *sql.DB
-	log                                  = logger.Log()
-	scripts map[string]map[string]string = make(map[string]map[string]string)
+	db         *sql.DB
+	log                                     = logger.Log()
+	scripts    map[string]map[string]string = make(map[string]map[string]string)
+	scriptsMap map[string]string
 )
 
 func init() {
-	scripts["sqlite3"] = map[string]string{
+	sqlite3 := map[string]string{
 		"createTableRequest": `
 		create table if not exists REQUEST (
 			ID integer NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -83,9 +84,9 @@ func init() {
 			AND HEADER_TYPE = ?
 		`,
 	}
+	scripts["sqlite3"] = sqlite3
+	scripts["default"] = sqlite3
 }
-
-const ()
 
 func initDB() *sql.DB {
 	if db == nil {
@@ -102,6 +103,10 @@ func initDB() *sql.DB {
 func openDB() *sql.DB {
 	var err error
 	engine := config.GetDbEngine()
+	scriptsMap = scripts[engine]
+	if scriptsMap == nil {
+		scriptsMap = scripts["default"]
+	}
 	if db, err = sql.Open(engine, config.GetDbUrl()); err == nil {
 		log.WithFields(logrus.Fields{
 			"driver": db.Stats(),
@@ -132,9 +137,8 @@ func openDB() *sql.DB {
 
 func Persist(r *Record) {
 	debug(r)
-	engine := config.GetDbEngine()
 	db := initDB()
-	if result, err := db.Exec(scripts[engine]["insertRequest"], r.Request.Path, r.Request.Method, r.Request.Body, r.Response.Body, r.Response.Code, r.ReqID, r.RequestDate); err != nil {
+	if result, err := db.Exec(getScript("insertRequest"), r.Request.Path, r.Request.Method, r.Request.Body, r.Response.Body, r.Response.Code, r.ReqID, r.RequestDate); err != nil {
 		log.WithError(err).
 			WithFields(logrus.Fields{
 				"record": r,
@@ -147,7 +151,7 @@ func Persist(r *Record) {
 
 				if _, err = db.ExecContext(
 					context.Background(),
-					scripts[engine]["insertHeader"],
+					getScript("insertHeader"),
 					k,     // NAME
 					v,     // VALUE
 					reqId, // REQUEST_ID
@@ -167,7 +171,7 @@ func Persist(r *Record) {
 			for _, v := range v_ {
 				if _, err = db.ExecContext(
 					context.Background(),
-					scripts[engine]["insertHeader"],
+					getScript("insertHeader"),
 					k,     // NAME
 					v,     // VALUE
 					reqId, // REQUEST_ID
@@ -190,8 +194,7 @@ func Persist(r *Record) {
 func GetRequests() []Record {
 	records := make([]Record, 0)
 	db := initDB()
-	engine := config.GetDbEngine()
-	if row, err := db.Query(scripts[engine]["selectRequests"]); err != nil {
+	if row, err := db.Query(getScript("selectRequests")); err != nil {
 		log.WithError(err).
 			Warn("Failed to query requests")
 	} else {
@@ -212,7 +215,7 @@ func GetRequests() []Record {
 				&record.Response.Body,  // RESPONSE
 				&record.Response.Code,  // RESPONSE_CODE
 			)
-			if reqHeadersRow, err := db.Query(scripts[engine]["selectRequestHeaders"], record.ID, "IN"); err == nil {
+			if reqHeadersRow, err := db.Query(getScript("selectRequestHeaders"), record.ID, "IN"); err == nil {
 				var reqHeaders Headers = make(Headers)
 				for reqHeadersRow.Next() { // Iterate and fetch the records from result cursor
 					var key, value string
@@ -223,7 +226,7 @@ func GetRequests() []Record {
 			} else {
 				log.WithError(err).Warn("Failed to fetch request headers")
 			}
-			if resHeadersRow, err := db.Query(scripts[engine]["selectRequestHeaders"], record.ID, "OUT"); err == nil {
+			if resHeadersRow, err := db.Query(getScript("selectRequestHeaders"), record.ID, "OUT"); err == nil {
 				var resHeaders Headers = make(Headers)
 				for resHeadersRow.Next() { // Iterate and fetch the records from result cursor
 					var key, value string
@@ -243,4 +246,8 @@ func GetRequests() []Record {
 
 func debug(obj interface{}) {
 	log.Debug(obj)
+}
+
+func getScript(name string) string {
+	return scriptsMap[name]
 }
