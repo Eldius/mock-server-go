@@ -12,3 +12,25 @@ routes:
       - application/json
     body: '{"id": 123, "name": "My Contract"}'
     statuscode: 200
+- path: /v2/test
+  method: POST
+  response:
+    headers:
+      Content-Type:
+      - application/json
+    body: |
+      script:javascript:
+        console.log(req.body);
+        var body = JSON.parse(req.body);
+        console.log(body);
+        var res = {};
+        if (body.contract) {
+          res.code = 200;
+          res.body = JSON.stringify({
+            "contract": body.contract,
+            "status": "OK"
+          });
+        } else {
+          res.code = 200;
+          res.body = JSON.stringify({"PING": "pong"});
+        }

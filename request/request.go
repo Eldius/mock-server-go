@@ -34,7 +34,9 @@ type Record struct {
 }
 
 func NewRecord(r *http.Request) *Record {
-	body, err := ioutil.ReadAll(r.Body)
+	bodyReader := r.Body
+	defer bodyReader.Close()
+	body, err := ioutil.ReadAll(bodyReader)
 	if err != nil {
 		log.WithError(err).Printf("Failed to read request body")
 		return nil

@@ -4,14 +4,16 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/Eldius/mock-server-go/config"
 	"github.com/Eldius/mock-server-go/logger"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
 )
 
 var (
-	db  *sql.DB
-	log = logger.Log()
+	db      *sql.DB
+	log                                  = logger.Log()
+	scripts map[string]map[string]string = make(map[string]map[string]string)
 )
 
 const (
@@ -97,8 +99,10 @@ func initDB() *sql.DB {
 
 func openDB() *sql.DB {
 	var err error
-	if db, err = sql.Open("sqlite3", "./mock.db"); err == nil {
-		log.Println("Create request table...")
+	if db, err = sql.Open(config.GetDbEngine(), config.GetDbUrl()); err == nil {
+		log.WithFields(logrus.Fields{
+			"driver": db.Stats(),
+		}).Println("Create request table...")
 		statement, err := db.Prepare(createTableRequest) // Prepare SQL Statement
 		if err != nil {
 			log.WithError(err).Error("Failed to prepare statement to create requests table")

@@ -9,7 +9,6 @@ import (
 
 	"github.com/Eldius/mock-server-go/request"
 	"github.com/robertkrimen/otto"
-	"github.com/sirupsen/logrus"
 	//lua "github.com/yuin/gopher-lua"
 )
 
@@ -41,15 +40,6 @@ func (r *RequestMapping) MakeResponse(rw http.ResponseWriter, req *http.Request)
 	}
 	if strings.HasPrefix(r.Response.Body, javascriptPreffix) {
 		resBody, resCode, err := r.parseScript(rw, req)
-		defer func() {
-			if r := recover(); r != nil {
-				respRec.Body = fmt.Sprintf("Panicked executing script\n%v", r)
-				respRec.Code = http.StatusInternalServerError
-				log.WithFields(logrus.Fields{
-					"err": r,
-				}).Error("Panicked executing script")
-			}
-		}()
 		if err != nil {
 			respRec.Body = err.Error()
 			respRec.Code = http.StatusInternalServerError

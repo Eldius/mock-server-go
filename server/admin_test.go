@@ -71,8 +71,8 @@ func TestRouteHandler(t *testing.T) {
 		t.Errorf("Response mapping must have method '/app/v1/test', but was '%s'", mapping.Path)
 	}
 
-	if len(r.Routes) != 3 {
-		t.Errorf("Routes count must be 3, but was %d", len(r.Routes))
+	if len(r.Routes) != 4 {
+		t.Errorf("Routes count must be 4, but was %d", len(r.Routes))
 	}
 }
 
@@ -109,8 +109,8 @@ func TestRouteHandlerError(t *testing.T) {
 	if resBody == "" {
 		t.Fatalf("Response body must not be nil, but was '%s'", resBody)
 	}
-	if len(r.Routes) != 2 {
-		t.Errorf("Routes count must be 2, but was %d", len(r.Routes))
+	if len(r.Routes) != 3 {
+		t.Errorf("Routes count must be 3, but was %d", len(r.Routes))
 	}
 }
 
@@ -138,8 +138,8 @@ func TestRouteHandlerGet(t *testing.T) {
 		t.Errorf("Failed to unmarshall request body\n%s", err.Error())
 	}
 
-	if len(response.Routes) != 2 {
-		t.Errorf("Must return '2' mapping objects, but returned '%d'", len(response.Routes))
+	if len(response.Routes) != 3 {
+		t.Errorf("Must return '3' mapping objects, but returned '%d'", len(response.Routes))
 	}
 
 	if !strings.HasPrefix(res.Header.Get("Content-Type"), "application/json") {
@@ -176,8 +176,8 @@ func TestRouteHandlerGetYAML(t *testing.T) {
 		t.Errorf("Failed to unmarshall request body\n%s", err.Error())
 	}
 
-	if len(response.Routes) != 2 {
-		t.Errorf("Must return '2' mapping objects, but returned '%d'", len(response.Routes))
+	if len(response.Routes) != 3 {
+		t.Errorf("Must return '3' mapping objects, but returned '%d'", len(response.Routes))
 	}
 
 	if !strings.HasPrefix(res.Header.Get("Content-Type"), "application/yaml") {
@@ -217,8 +217,8 @@ func TestRouteHandlerGetJSON(t *testing.T) {
 		t.Errorf("Failed to unmarshall request body\n%s", err.Error())
 	}
 
-	if len(response.Routes) != 2 {
-		t.Errorf("Must return '2' mapping objects, but returned '%d'", len(response.Routes))
+	if len(response.Routes) != 3 {
+		t.Errorf("Must return '3' mapping objects, but returned '%d'", len(response.Routes))
 	}
 
 	if !strings.HasPrefix(res.Header.Get("Content-Type"), "application/json") {

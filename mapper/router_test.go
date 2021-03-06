@@ -10,6 +10,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/Eldius/mock-server-go/config"
 )
 
 var router Router
@@ -43,6 +45,7 @@ func init() {
 			},
 		},
 	})
+	config.Setup("")
 }
 
 func TestRouteFound(t *testing.T) {
@@ -97,7 +100,7 @@ func TestImportMappingYaml(t *testing.T) {
 	sourcePath := "samples/mapping_file_test.yml"
 	r := ImportMappingYaml(sourcePath)
 
-	if len(r.Routes) != 2 {
+	if len(r.Routes) != 3 {
 		t.Errorf("Must have 2 mappings, but has '%d'", len(r.Routes))
 	}
 
@@ -116,6 +119,16 @@ func TestImportMappingYaml(t *testing.T) {
 	}
 	if r.Routes[1].Response.Body != `{"id": 123, "name": "My Contract"}` {
 		t.Errorf(`First mapping must have body '{"id": 123, "name": "My Contract"}', but has '%s'`, r.Routes[1].Response.Body)
+	}
+
+	if r.Routes[2].Method != "POST" {
+		t.Errorf("First mapping must be a 'POST', but has '%s'", r.Routes[2].Method)
+	}
+	if r.Routes[2].Path != "/v2/test" {
+		t.Errorf("First mapping must have path '/v1/contract', but has '%s'", r.Routes[2].Path)
+	}
+	if !strings.HasPrefix(r.Routes[2].Response.Body, "script:javascript:") {
+		t.Errorf(`Scripted mapping body must start with 'script:javascript:' prefix, but hasn't ('%s')`, r.Routes[2].Response.Body)
 	}
 }
 
@@ -305,7 +318,7 @@ func TestRequestMappingParseScriptExecutionError(t *testing.T) {
 	}
 
 	rw := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "/v1/test", bytes.NewBuffer([]byte(`{"contract": 1234}`)))
+	req := httptest.NewRequest("GET", "/v1/test", bytes.NewBufferString(`{"contract": 1234}`))
 	_, _, err := r.parseScript(rw, req)
 	if err == nil {
 		t.Errorf("Failed to execute script\n%s\n", err)
@@ -336,4 +349,42 @@ func TestRequestMappingParseScriptInvalidScript(t *testing.T) {
 		t.Error("Exception must contains script content")
 	}
 
+}
+
+func TestHandleRequestScripted(t *testing.T) {
+	r := ImportMappingYaml(mappingFile)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", r.Handle)
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	url := fmt.Sprintf("%s/v2/test", server.URL)
+
+	c := http.Client{}
+	res, err := c.Post(url, "application/json", bytes.NewBufferString(`{
+		"contract": 12345,
+		"status": "pending"
+	}`))
+	if err != nil {
+		t.Fatalf("Failed to execute request\n%s", err.Error())
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		t.Fatalf(`Scripted response must return status code '200', but was '%d'`, res.StatusCode)
+	}
+	var bodyMap map[string]interface{}
+
+	err = json.NewDecoder(res.Body).Decode(&bodyMap)
+	if err != nil {
+		t.Errorf("Failed to parse body to a map\n%s\n", err)
+	}
+	if bodyMap["contract"] != float64(12345) {
+		t.Fatalf(`Returned contract must be equals to '12345' , but was '%d'`, bodyMap["contract"])
+	}
+	resContentType := res.Header.Get("Content-Type")
+	if !strings.HasPrefix(resContentType, "application/json") {
+		t.Fatalf(`Get response must contain header 'Content-Type' equals to 'application/json', but has '%s'`, resContentType)
+	}
 }

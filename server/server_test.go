@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/Eldius/mock-server-go/config"
 	"github.com/Eldius/mock-server-go/mapper"
 )
 
@@ -18,6 +19,7 @@ var c http.Client
 func init() {
 	r = mapper.ImportMappingYaml("../mapper/samples/mapping_file_benchmark.yml")
 	c = http.Client{}
+	config.Setup("")
 }
 
 type requestBuilder func() (*http.Request, error)
