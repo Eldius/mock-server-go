@@ -2,22 +2,14 @@ package mapper
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/robertkrimen/otto"
-	"rogchap.com/v8go"
 )
-
-func Execute() {
-	ctx, _ := v8go.NewContext()                             // creates a new V8 context with a new Isolate aka VM
-	ctx.RunScript("const add = (a, b) => a + b", "math.js") // executes a script on the global context
-	ctx.RunScript("const result = add(3, 4)", "main.js")    // any functions previously added to the context can be called
-	val, _ := ctx.RunScript("result", "value.js")           // return a value in JavaScript back to Go
-	fmt.Printf("addition result: %s", val)
-}
 
 func (r *RequestMapping) parseScript(rw http.ResponseWriter, req *http.Request) (respBody string, respCode int, err error) {
 	return r.parseScriptOtto(rw, req)
@@ -31,15 +23,20 @@ func (r *RequestMapping) parseScriptV8(rw http.ResponseWriter, req *http.Request
 	return
 }
 
+func extractBody(reader io.Reader) string {
+	body, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return ""
+	}
+	return string(body)
+}
+
 func (r *RequestMapping) parseScriptOtto(rw http.ResponseWriter, req *http.Request) (respBody string, respCode int, err error) {
 	vm := otto.New()
-	body, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		return
-	}
+	body := extractBody(req.Body)
 
 	request := map[string]interface{}{
-		"body":    string(string(body)),
+		"body":    body,
 		"headers": req.Header,
 	}
 
