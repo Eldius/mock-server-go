@@ -17,15 +17,19 @@ import (
 var router Router
 
 func init() {
+	mappingBody1 := `{
+		"msg": "Success!"
+	}`
+	mappingBody2 := `{
+		"msg": "Success!"
+	}`
 	var mapping []RequestMapping
 	mapping = append(mapping, RequestMapping{
 		Path:   "/path/test",
 		Method: "POST",
 		Response: MockResponse{
 			StatusCode: 200,
-			Body: `{
-					"msg": "Success!"
-				}`,
+			Body:       &mappingBody1,
 			Headers: MockHeader{
 				"Content-Type": []string{"application/json"},
 			},
@@ -37,9 +41,7 @@ func init() {
 		Method: "GET",
 		Response: MockResponse{
 			StatusCode: 200,
-			Body: `{
-					"msg": "Success!"
-				}`,
+			Body:       &mappingBody2,
 			Headers: MockHeader{
 				"Content-Type": []string{"application/json"},
 			},
@@ -117,8 +119,8 @@ func TestImportMappingYaml(t *testing.T) {
 	if r.Routes[1].Path != "/v1/contract" {
 		t.Errorf("First mapping must have path '/v1/contract', but has '%s'", r.Routes[1].Path)
 	}
-	if r.Routes[1].Response.Body != `{"id": 123, "name": "My Contract"}` {
-		t.Errorf(`First mapping must have body '{"id": 123, "name": "My Contract"}', but has '%s'`, r.Routes[1].Response.Body)
+	if *r.Routes[1].Response.Body != `{"id": 123, "name": "My Contract"}` {
+		t.Errorf(`First mapping must have body '{"id": 123, "name": "My Contract"}', but has '%s'`, *r.Routes[1].Response.Body)
 	}
 
 	if r.Routes[2].Method != "POST" {
@@ -127,8 +129,8 @@ func TestImportMappingYaml(t *testing.T) {
 	if r.Routes[2].Path != "/v2/test" {
 		t.Errorf("First mapping must have path '/v1/contract', but has '%s'", r.Routes[2].Path)
 	}
-	if !strings.HasPrefix(r.Routes[2].Response.Body, "script:javascript:") {
-		t.Errorf(`Scripted mapping body must start with 'script:javascript:' prefix, but hasn't ('%s')`, r.Routes[2].Response.Body)
+	if !strings.Contains(*r.Routes[2].Response.Script, `res.body = JSON.stringify({"PING": "pong"});`) {
+		t.Errorf(`Scripted mapping body must start with 'script:javascript:' prefix, but hasn't ('%s')`, *r.Routes[2].Response.Body)
 	}
 }
 
@@ -262,24 +264,25 @@ func TestHandleRequestGotNotFound(t *testing.T) {
 }
 
 func TestRequestMappingParseScript(t *testing.T) {
+	script := `
+	console.log(req.body);
+	var body = JSON.parse(req.body);
+	console.log(body);
+	var res = {};
+	if (body.contract) {
+	  res.code = 200;
+	  res.body = JSON.stringify({
+		"contract": body.contract,
+		"status": "OK"
+	  });
+	} else {
+	  res.code = 200;
+	  res.body = JSON.stringify({"PING": "pong"});
+	}`
 	r := RequestMapping{
 		Method: "POST",
 		Response: MockResponse{
-			Body: `script:javascript:
-        console.log(req.body);
-        var body = JSON.parse(req.body);
-        console.log(body);
-        var res = {};
-        if (body.contract) {
-          res.code = 200;
-          res.body = JSON.stringify({
-            "contract": body.contract,
-            "status": "OK"
-          });
-        } else {
-          res.code = 200;
-          res.body = JSON.stringify({"PING": "pong"});
-        }`,
+			Script: &script,
 		},
 	}
 
@@ -308,12 +311,13 @@ func TestRequestMappingParseScript(t *testing.T) {
 }
 
 func TestRequestMappingParseScriptExecutionError(t *testing.T) {
+	script := `script:javascript:
+	throw new Error("Holy crap!")
+`
 	r := RequestMapping{
 		Method: "POST",
 		Response: MockResponse{
-			Body: `script:javascript:
-				throw new Error("Holy crap!")
-			`,
+			Script: &script,
 		},
 	}
 
@@ -330,12 +334,13 @@ func TestRequestMappingParseScriptExecutionError(t *testing.T) {
 }
 
 func TestRequestMappingParseScriptInvalidScript(t *testing.T) {
+	script := `script:javascript:
+	_1234;
+`
 	r := RequestMapping{
 		Method: "POST",
 		Response: MockResponse{
-			Body: `script:javascript:
-				_1234;
-			`,
+			Script: &script,
 		},
 	}
 

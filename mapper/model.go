@@ -12,7 +12,8 @@ type MockHeader map[string][]string
 
 type MockResponse struct {
 	Headers    MockHeader `json:"headers"`
-	Body       string     `json:"body"`
+	Body       *string    `json:"body"`
+	Script     *string    `json:"script"`
 	StatusCode int        `json:"statusCode"`
 }
 
@@ -22,9 +23,9 @@ type RequestMapping struct {
 	Response MockResponse `json:"response"`
 }
 
-const (
-	javascriptPreffix = "script:javascript:"
-)
+func (r *MockResponse) IsScript() bool {
+	return r.Script != nil
+}
 
 func (r *RequestMapping) MakeResponse(rw http.ResponseWriter, req *http.Request) request.ResponseRecord {
 	respRec := request.ResponseRecord{
@@ -34,7 +35,7 @@ func (r *RequestMapping) MakeResponse(rw http.ResponseWriter, req *http.Request)
 		respRec.Headers[k] = append(respRec.Headers[k], values...)
 		rw.Header().Add(k, strings.Join(respRec.Headers[k], "; "))
 	}
-	if strings.HasPrefix(r.Response.Body, javascriptPreffix) {
+	if r.Response.IsScript() {
 		resBody, resCode, err := r.parseScript(rw, req)
 		if err != nil {
 			respRec.Body = err.Error()
@@ -47,9 +48,9 @@ func (r *RequestMapping) MakeResponse(rw http.ResponseWriter, req *http.Request)
 		rw.WriteHeader(respRec.Code)
 		_, _ = rw.Write([]byte(respRec.Body))
 	} else {
-		respRec.Body = r.Response.Body
+		respRec.Body = *r.Response.Body
 		rw.WriteHeader(r.Response.StatusCode)
-		_, _ = rw.Write([]byte(r.Response.Body))
+		_, _ = rw.Write([]byte(*r.Response.Body))
 	}
 	return respRec
 }

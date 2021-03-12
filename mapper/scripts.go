@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/robertkrimen/otto"
 )
@@ -42,7 +41,7 @@ func (r *RequestMapping) parseScriptOtto(rw http.ResponseWriter, req *http.Reque
 
 	_ = vm.Set("req", request)
 	var value otto.Value
-	script := strings.TrimPrefix(r.Response.Body, javascriptPreffix)
+	script := *r.Response.Script
 
 	if _, err = vm.Run(script); err != nil {
 		err = fmt.Errorf("Failed to execute script\nerror: %v\nscript:\n%s", err, script)

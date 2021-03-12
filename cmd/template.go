@@ -25,6 +25,7 @@ var templateCmd = &cobra.Command{
 				StatusCode: 202,
 			},
 		})
+		body1 := `{"id": 123, "name": "My Contract"}`
 		r.Add(mapper.RequestMapping{
 			Path:   "/v1/contract",
 			Method: "GET",
@@ -33,7 +34,24 @@ var templateCmd = &cobra.Command{
 					"Content-Type": []string{"application/json"},
 				},
 				StatusCode: 200,
-				Body:       `{"id": 123, "name": "My Contract"}`,
+				Body:       &body1,
+			},
+		})
+		script2 := `
+var res = {
+	"body": "{\"id\": 1, \"status\": \"OK\"}",
+	code: 200
+};
+`
+		r.Add(mapper.RequestMapping{
+			Path:   "/v1/contract/1",
+			Method: "GET",
+			Response: mapper.MockResponse{
+				Headers: mapper.MockHeader{
+					"Content-Type": []string{"application/json"},
+				},
+				StatusCode: 200,
+				Script:     &script2,
 			},
 		})
 

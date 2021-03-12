@@ -23,12 +23,11 @@ routes:
     headers:
       Content-Type:
       - application/json
-    body: |
-      script:javascript:
-        var res = {
-          "code": 200,
-          "body": req.body
-        };
+    script: |
+      var res = {
+        "code": 200,
+        "body": req.body
+      };
 
 - path: /v1/test
   method: GET
@@ -36,12 +35,11 @@ routes:
     headers:
       Content-Type:
       - application/json
-    body: |
-      script:javascript:
-        var res = {
-          "code": 200,
-          "body": '{"PING": "pong"}'
-        };
+    script: |
+      var res = {
+        "code": 200,
+        "body": '{"PING": "pong"}'
+      };
 
 - path: /v2/test
   method: POST
@@ -49,19 +47,18 @@ routes:
     headers:
       Content-Type:
       - application/json
-    body: |
-      script:javascript:
-        console.log(req.body);
-        var body = JSON.parse(req.body);
-        console.log(body);
-        var res = {};
-        if (body.contract) {
-          res.code = 200;
-          res.body = JSON.stringify({
-            "contract": body.contract,
-            "status": "OK"
-          });
-        } else {
-          res.code = 200;
-          res.body = JSON.stringify({"PING": "pong"});
-        }
+    script: |
+      console.log(req.body);
+      var body = JSON.parse(req.body);
+      console.log(body);
+      var res = {};
+      if (body.contract) {
+        res.code = 200;
+        res.body = JSON.stringify({
+          "contract": body.contract,
+          "status": "OK"
+        });
+      } else {
+        res.code = 200;
+        res.body = JSON.stringify({"PING": "pong"});
+      }
