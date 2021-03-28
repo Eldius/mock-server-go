@@ -3,8 +3,6 @@ module github.com/Eldius/mock-server-go
 go 1.15
 
 require (
-	fknsrs.biz/p/ottoext v0.0.0-20170408110602-5871ae9499f3
-	github.com/GeertJohan/go.rice v1.0.2 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/google/uuid v1.2.0
 	github.com/gopherjs/gopherjs v0.0.0-20210202160940-bed99a852dfe // indirect
