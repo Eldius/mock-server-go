@@ -38,7 +38,27 @@ makerequests:
 	curl -i -XPOST http://localhost:8080/v2/test -d '{"id": "128", "contract": 123452, "name": "test2"}' -H 'Content-Type: application/json'
 	curl -i -XPOST http://localhost:8080/v2/test -d '{"id": "128", "contract": 123453, "name": "test3"}' -H 'Content-Type: application/json'
 
-build:
+dockerbuild:
 	docker build \
-		-t mock-server-go \
+		-t eldius/mock-server-go \
 		.
+	docker tag eldius/mock-server-go eldius/mock-server-go:$(shell git rev-parse --short HEAD)
+
+dockerbuildarm:
+	docker build \
+		-t eldius/mock-server-go-armhf \
+		-f Dockerfile.armhf \
+		.
+	docker tag eldius/mock-server-go-armhf eldius/mock-server-go-armhf:$(shell git rev-parse --short HEAD)
+
+dockerpush: dockerbuild
+	docker push eldius/mock-server-go:latest
+	docker push eldius/mock-server-go:$(shell git rev-parse --short HEAD)
+
+dockerpusharm: dockerbuildarm
+	docker push eldius/mock-server-go-armhf:latest
+	docker push eldius/mock-server-go-armhf:$(shell git rev-parse --short HEAD)
+
+dockerrun: dockerbuild
+	docker run -it --rm --name mocky -p 8080:8080 -p 8081:8081 eldius/mock-server-go:latest
+
