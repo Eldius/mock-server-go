@@ -37,3 +37,8 @@ makerequests:
 	curl -i -XPOST http://localhost:8080/v2/test -d '{"id": "128", "contract": 123451, "name": "test1"}' -H 'Content-Type: application/json'
 	curl -i -XPOST http://localhost:8080/v2/test -d '{"id": "128", "contract": 123452, "name": "test2"}' -H 'Content-Type: application/json'
 	curl -i -XPOST http://localhost:8080/v2/test -d '{"id": "128", "contract": 123453, "name": "test3"}' -H 'Content-Type: application/json'
+
+build:
+	docker build \
+		-t mock-server-go \
+		.
