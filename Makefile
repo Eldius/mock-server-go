@@ -62,3 +62,8 @@ dockerpusharm: dockerbuildarm
 dockerrun: dockerbuild
 	docker run -it --rm --name mocky -p 8080:8080 -p 8081:8081 eldius/mock-server-go:latest
 
+dockermulti:
+	docker buildx build \
+		--push \
+		--platform linux/arm/v7,linux/arm64/v8,linux/amd64 \
+		--tag eldius/mock-server-go-multi:latest .
