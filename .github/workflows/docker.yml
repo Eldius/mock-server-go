@@ -42,5 +42,5 @@ jobs:
         uses: docker/login-action@v1.8.0
         with:
           username: eldius
-          password: ${{ env.DOCKER_KEY }}
+          password: ${{ secrets.DOCKER_KEY }}
           logout: true
