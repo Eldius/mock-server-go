@@ -48,6 +48,7 @@ func (r *RequestMapping) MakeResponse(rw http.ResponseWriter, req *http.Request)
 		_, _ = rw.Write([]byte(respRec.Body))
 	} else {
 		respRec.Body = *r.Response.Body
+		respRec.Code = r.Response.StatusCode
 		rw.WriteHeader(r.Response.StatusCode)
 		_, _ = rw.Write([]byte(*r.Response.Body))
 	}
