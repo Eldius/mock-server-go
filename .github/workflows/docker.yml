@@ -50,10 +50,8 @@ jobs:
         # uses: docker/build-push-action@9379083e426e2e84abb80c8c091f5cdeb7d3fd7a
         uses: docker/build-push-action@v2.3.0
         with:
-          # List of metadata for an image
-          labels: mock-server,multi-arch,arm64,arm
           # List of tags
-          tags: eldius/mock-server-go:latest
+          tags: eldius/mock-server-go:latest,eldius/mock-sever-go:${{ github.sha }}
           # Always attempt to pull a newer version of the image
           pull: true
           # Do not use cache when building the image
@@ -62,3 +60,4 @@ jobs:
           platforms: linux/arm/v7,linux/arm64/v8,linux/amd64
           # Push is a shorthand for --output=type=registry
           push: true
+          context: .
