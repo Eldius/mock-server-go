@@ -2,7 +2,6 @@ package request
 
 import (
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
 
 	"github.com/Eldius/mock-server-go/logger"
@@ -52,7 +51,7 @@ func Persist(r *Record) {
 			return err
 		}
 		r.ID = int(id)
-		bin, err := json.Marshal(r)
+		bin, err := Serialize(r)
 		if err != nil {
 			log.WithError(err).
 				WithFields(logrus.Fields{
@@ -90,8 +89,7 @@ func GetRequests() []Record {
 
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			fmt.Printf("key=%s, value=%s\n", k, v)
-			var r Record
-			err := json.Unmarshal(v, &r)
+			r, err := Deserialize(v)
 			if err != nil {
 				log.WithError(err).
 					WithFields(logrus.Fields{
@@ -100,7 +98,7 @@ func GetRequests() []Record {
 					}).
 					Error("Failed to marshal request json")
 			}
-			records = append(records, r)
+			records = append(records, *r)
 		}
 
 		return nil

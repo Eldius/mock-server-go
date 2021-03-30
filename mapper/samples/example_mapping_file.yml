@@ -1,64 +1,59 @@
 routes:
-- path: /v1/contract
-  method: POST
-  response:
-    headers:
-      Content-Type:
-      - application/json
-    body: ""
-    statuscode: 202
+  - path: /v1/contract
+    method: POST
+    response:
+      headers:
+        Content-Type: application/json
+      body: ""
+      statuscode: 202
 
-- path: /v1/contract
-  method: GET
-  response:
-    headers:
-      Content-Type:
-      - application/json
-    body: '{"id": 123, "name": "My Contract"}'
-    statuscode: 200
+  - path: /v1/contract
+    method: GET
+    response:
+      headers:
+        Content-Type: application/json
+      body: '{"id": 123, "name": "My Contract"}'
+      statuscode: 200
 
-- path: /v1/test
-  method: POST
-  response:
-    headers:
-      Content-Type:
-      - application/json
-    script: |
-      var res = {
-        "code": 200,
-        "body": req.body
-      };
+  - path: /v1/test
+    method: POST
+    response:
+      headers:
+        Content-Type: application/json
+      script: |
+        var res = {
+          "code": 200,
+          "body": req.body
+        };
 
-- path: /v1/test
-  method: GET
-  response:
-    headers:
-      Content-Type:
-      - application/json
-    script: |
-      var res = {
-        "code": 200,
-        "body": '{"PING": "pong"}'
-      };
+  - path: /v1/test
+    method: GET
+    response:
+      headers:
+        Content-Type: application/json
+      script: |
+        var res = {
+          "code": 200,
+          "body": '{"PING": "pong"}'
+        };
 
-- path: /v2/test
-  method: POST
-  response:
-    headers:
-      Content-Type:
-      - application/json
-    script: |
-      console.log(req.body);
-      var body = JSON.parse(req.body);
-      console.log(body);
-      var res = {};
-      if (body.contract) {
-        res.code = 200;
-        res.body = JSON.stringify({
-          "contract": body.contract,
-          "status": "OK"
-        });
-      } else {
-        res.code = 200;
-        res.body = JSON.stringify({"PING": "pong"});
-      }
+  - path: /v2/test
+    method: POST
+    response:
+      headers:
+        Content-Type: application/json
+      script: |
+        console.log(req.body);
+        var body = JSON.parse(req.body);
+        console.log(body);
+        var res = {};
+        if (body.contract) {
+          res.code = 200;
+          res.body = JSON.stringify({
+            "contract": body.contract,
+            "status": "OK"
+          });
+        } else {
+          res.code = 200;
+          res.body = JSON.stringify({"PING": "pong"});
+        }

@@ -31,7 +31,7 @@ func init() {
 			StatusCode: 200,
 			Body:       &mappingBody1,
 			Headers: MockHeader{
-				"Content-Type": []string{"application/json"},
+				"Content-Type": "application/json",
 			},
 		},
 	})
@@ -43,7 +43,7 @@ func init() {
 			StatusCode: 200,
 			Body:       &mappingBody2,
 			Headers: MockHeader{
-				"Content-Type": []string{"application/json"},
+				"Content-Type": "application/json",
 			},
 		},
 	})

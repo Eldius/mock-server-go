@@ -8,31 +8,27 @@ routes:
     method: GET
     response:
       headers:
-        Content-Type:
-          - application/json
+        Content-Type: application/json
       body: '{"id": 123, "name": "My Contract"}'
       statuscode: 200
   - path: /v1/contract
     method: PUT
     response:
       headers:
-        Content-Type:
-          - application/json
+        Content-Type: application/json
       body: '{"id": 123, "name": "My Contract"}'
       statuscode: 200
   - path: /v1/test
     method: PUT
     response:
       headers:
-        Content-Type:
-          - application/json
+        Content-Type: application/json
       body: '{"id": 123, "name": "My Contract"}'
       statuscode: 200
   - path: /v1/test
     method: POST
     response:
       headers:
-        Content-Type:
-          - application/json
+        Content-Type: application/json
       body: '{"id": 123, "name": "My Contract"}'
       statuscode: 200

@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
-type Headers map[string][]string
+type Headers map[string]string
 
 type RequestRecord struct {
 	Path    string  `json:"path"`
@@ -47,6 +48,10 @@ func NewRecord(r *http.Request) *Record {
 		"body": string(body),
 	}).Debug("request body")
 
+	h := make(map[string]string)
+	for k, v := range r.Header {
+		h[k] = strings.Join(v, ",")
+	}
 	return &Record{
 		ReqID:       uuid.New(),
 		RequestDate: time.Now(),
@@ -54,7 +59,7 @@ func NewRecord(r *http.Request) *Record {
 			Path:    r.URL.Path,
 			Method:  r.Method,
 			Body:    string(body),
-			Headers: Headers(r.Header),
+			Headers: Headers(h),
 		},
 	}
 }

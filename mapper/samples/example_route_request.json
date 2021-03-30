@@ -3,9 +3,7 @@
     "method": "GET",
     "response": {
         "headers": {
-            "Content-Type": [
-                "application/json"
-            ]
+            "Content-Type": "application/json"
         },
         "body": "{\"msg\": \"Test response!\"}",
         "statusCode": 200

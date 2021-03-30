@@ -20,7 +20,7 @@ var templateCmd = &cobra.Command{
 			Method: "POST",
 			Response: mapper.MockResponse{
 				Headers: mapper.MockHeader{
-					"Content-Type": []string{"application/json"},
+					"Content-Type": "application/json",
 				},
 				StatusCode: 202,
 			},
@@ -31,7 +31,7 @@ var templateCmd = &cobra.Command{
 			Method: "GET",
 			Response: mapper.MockResponse{
 				Headers: mapper.MockHeader{
-					"Content-Type": []string{"application/json"},
+					"Content-Type": "application/json",
 				},
 				StatusCode: 200,
 				Body:       &body1,
@@ -48,7 +48,7 @@ var res = {
 			Method: "GET",
 			Response: mapper.MockResponse{
 				Headers: mapper.MockHeader{
-					"Content-Type": []string{"application/json"},
+					"Content-Type": "application/json",
 				},
 				StatusCode: 200,
 				Script:     &script2,

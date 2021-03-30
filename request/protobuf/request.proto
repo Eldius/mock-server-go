@@ -1,0 +1,29 @@
+syntax = "proto3";
+package request;
+
+import "google/protobuf/timestamp.proto";
+
+message UUID {
+  required string value = 1;
+}
+
+message RequestRecord {
+	string Path = 1;
+	string Method = 2;
+	map<string, string> Headers = 3;
+	string Body = 4;
+}
+
+message ResponseRecord {
+	map<string, string> Headers = 1;
+	int Code = 2;
+	string Body = 3;
+}
+
+message Record {
+	int64 ID = 1;
+	google.protobuf.Timestamp RequestDate  = 2;
+	string ReqID = 3;
+	RequestRecord Request = 4;
+	ResponseRecord Response = 5;
+}

@@ -2,13 +2,12 @@ package mapper
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/Eldius/mock-server-go/request"
 	//lua "github.com/yuin/gopher-lua"
 )
 
-type MockHeader map[string][]string
+type MockHeader map[string]string
 
 type MockResponse struct {
 	Headers    MockHeader `json:"headers"`
@@ -29,11 +28,11 @@ func (r *MockResponse) IsScript() bool {
 
 func (r *RequestMapping) MakeResponse(rw http.ResponseWriter, req *http.Request) request.ResponseRecord {
 	respRec := request.ResponseRecord{
-		Headers: map[string][]string{},
+		Headers: map[string]string{},
 	}
 	for k, values := range r.Response.Headers {
-		respRec.Headers[k] = append(respRec.Headers[k], values...)
-		rw.Header().Add(k, strings.Join(respRec.Headers[k], "; "))
+		respRec.Headers[k] = values
+		rw.Header().Add(k, respRec.Headers[k])
 	}
 	if r.Response.IsScript() {
 		resBody, resCode, err := r.parseScript(rw, req)

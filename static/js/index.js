@@ -72,7 +72,7 @@
                 const [key, values] = entry;
                 console.log(key, values);
                 let p = document.createElement("p");
-                p.innerHTML = key + ": " + values.join("; ")
+                p.innerHTML = key + ": " + values;
                 divReqHeaders.appendChild(p);
             });
             tr.appendChild(colRequestHeaders);
@@ -89,7 +89,7 @@
                 const [key, values] = entry;
                 console.log(key, values);
                 let p = document.createElement("p");
-                p.innerHTML = key + ": " + values.join("; ")
+                p.innerHTML = key + ": " + values;
                 divResHeaders.appendChild(p);
             });
             tr.appendChild(colResponseHeaders);
