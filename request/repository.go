@@ -1,246 +1,113 @@
 package request
 
 import (
-	"context"
-	"database/sql"
+	"encoding/binary"
+	"encoding/json"
+	"fmt"
 
-	"github.com/Eldius/mock-server-go/config"
 	"github.com/Eldius/mock-server-go/logger"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
+	bolt "go.etcd.io/bbolt"
 )
 
 var (
-	db         *sql.DB
-	log                                     = logger.Log()
-	scripts    map[string]map[string]string = make(map[string]map[string]string)
-	scriptsMap map[string]string
+	db                   *bolt.DB
+	log                  = logger.Log()
+	requestsDbBucketName = "requests"
 )
 
 func init() {
-	sqlite3 := map[string]string{
-		"createTableRequest": `
-		create table if not exists REQUEST (
-			ID integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-			REQ_ID varchar(50),
-			REQ_DATE timestamp,
-			PATH varchar(255),
-			METHOD varchar(15),
-			REQUEST varchar(4000),
-			RESPONSE varchar(4000),
-			RESPONSE_CODE int
-		);`,
-		"createTableHeader": `
-		create table if not exists HEADERS (
-			ID integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-			NAME varchar(50),
-			VALUE varchar(50),
-			REQUEST_ID integer not null,
-			HEADER_TYPE varchar(10) 
-		);
-		`,
-		"insertRequest": `
-		insert into REQUEST (
-			PATH
-			, METHOD
-			, REQUEST
-			, RESPONSE
-			, RESPONSE_CODE
-			, REQ_ID
-			, REQ_DATE
-		) values (
-			?
-			, ?
-			, ?
-			, ?
-			, ?
-			, ?
-			, ?
-		)
-		`,
-		"insertHeader": `
-		insert into HEADERS (
-			NAME
-			, VALUE
-			, REQUEST_ID
-			, HEADER_TYPE
-		) values (
-			?
-			, ?
-			, ?
-			, ?
-		)
-		`,
-		"selectRequests": `SELECT ID, REQ_ID, REQ_DATE, PATH, METHOD, REQUEST, RESPONSE, RESPONSE_CODE FROM REQUEST`,
-		"selectRequestHeaders": `
-		-- SQLite
-		SELECT
-			NAME,
-			VALUE
-		FROM
-			HEADERS
-		WHERE
-			REQUEST_ID = ?
-			AND HEADER_TYPE = ?
-		`,
-	}
-	scripts["sqlite3"] = sqlite3
-	scripts["default"] = sqlite3
-}
-
-func initDB() *sql.DB {
-	if db == nil {
-		openDB()
-	} else {
-		if err := db.Ping(); err != nil {
-			openDB()
-		}
-	}
-
-	return db
-}
-
-func openDB() *sql.DB {
 	var err error
-	engine := config.GetDbEngine()
-	scriptsMap = scripts[engine]
-	if scriptsMap == nil {
-		scriptsMap = scripts["default"]
+	db, err = bolt.Open("mocky.db", 0666, nil)
+	if err != nil {
+		fmt.Println("Failed to open db file")
+		panic(err)
 	}
-	if db, err = sql.Open(engine, config.GetDbUrl()); err == nil {
-		log.WithFields(logrus.Fields{
-			"driver": db.Stats(),
-		}).Println("Create request table...")
-		statement, err := db.Prepare(scripts[engine]["createTableRequest"]) // Prepare SQL Statement
+	if err := db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte(requestsDbBucketName))
 		if err != nil {
-			log.WithError(err).Error("Failed to prepare statement to create requests table")
+			fmt.Println("Failed to create requests bucket")
+			panic(err)
 		}
-		_, err = statement.Exec() // Execute SQL Statements
-		if err != nil {
-			log.WithError(err).Error("Failed to create requests table")
-		}
-		statement, err = db.Prepare(scripts[engine]["createTableHeader"]) // Prepare SQL Statement
-		if err != nil {
-			log.WithError(err).Error("Failed to prepare statement to create headers table")
-		}
-		_, err = statement.Exec() // Execute SQL Statements
-		if err != nil {
-			log.WithError(err).Error("Failed to create headers table")
-		}
-		log.Println("tables created")
-	} else {
-		log.WithError(err).Fatal("Failed to open database")
+		return nil
+	}); err != nil {
+		fmt.Println("Failed to open transaction to initialize bucket")
+		panic(err)
 	}
-
-	return db
 }
 
 func Persist(r *Record) {
-	debug(r)
-	db := initDB()
-	if result, err := db.Exec(getScript("insertRequest"), r.Request.Path, r.Request.Method, r.Request.Body, r.Response.Body, r.Response.Code, r.ReqID, r.RequestDate); err != nil {
+	if db == nil {
+		panic("DB is nil")
+	}
+	if err := db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(requestsDbBucketName))
+		id, err := b.NextSequence()
+		if err != nil {
+			log.WithError(err).
+				WithFields(logrus.Fields{
+					"record": r,
+				}).
+				Error("Failed to get next sequential ID")
+			return err
+		}
+		r.ID = int(id)
+		bin, err := json.Marshal(r)
+		if err != nil {
+			log.WithError(err).
+				WithFields(logrus.Fields{
+					"record": r,
+				}).
+				Error("Failed to marshal request json")
+			return err
+		}
+		err = b.Put(itob(r.ID), bin)
+		if err != nil {
+			log.WithError(err).
+				WithFields(logrus.Fields{
+					"record": r,
+				}).
+				Error("Failed to marshal request json")
+			return err
+		}
+		return err
+	}); err != nil {
 		log.WithError(err).
 			WithFields(logrus.Fields{
 				"record": r,
 			}).
-			Warn("Failed to insert new request to db")
-	} else {
-		reqId, _ := result.LastInsertId()
-		for k, v_ := range r.Request.Headers {
-			for _, v := range v_ {
-
-				if _, err = db.ExecContext(
-					context.Background(),
-					getScript("insertHeader"),
-					k,     // NAME
-					v,     // VALUE
-					reqId, // REQUEST_ID
-					"IN",  // HEADER_TYPE
-				); err != nil {
-					log.WithError(err).
-						WithFields(logrus.Fields{
-							"headerKey":   k,
-							"headerValue": v,
-							"headerType":  "IN",
-						}).
-						Warn("Failed to insert request headers")
-				}
-			}
-		}
-		for k, v_ := range r.Response.Headers {
-			for _, v := range v_ {
-				if _, err = db.ExecContext(
-					context.Background(),
-					getScript("insertHeader"),
-					k,     // NAME
-					v,     // VALUE
-					reqId, // REQUEST_ID
-					"OUT", // HEADER_TYPE
-				); err != nil {
-					log.WithError(err).
-						WithFields(logrus.Fields{
-							"headerKey":   k,
-							"headerValue": v,
-							"headerType":  "OUT",
-						}).
-						Warn("Failed to insert request headers")
-				}
-			}
-		}
-
+			Error("Failed to open transaction")
 	}
 }
 
 func GetRequests() []Record {
 	records := make([]Record, 0)
-	db := initDB()
-	if row, err := db.Query(getScript("selectRequests")); err != nil {
-		log.WithError(err).
-			Warn("Failed to query requests")
-	} else {
-		defer row.Close()
-		for row.Next() { // Iterate and fetch the records from result cursor
-			record := Record{
-				Request:  RequestRecord{},
-				Response: ResponseRecord{},
-			}
+	if err := db.View(func(tx *bolt.Tx) error {
+		// Assume bucket exists and has keys
+		b := tx.Bucket([]byte(requestsDbBucketName))
 
-			_ = row.Scan(
-				&record.ID,             // ID
-				&record.ReqID,          // REQ_ID
-				&record.RequestDate,    // REQ_DATE
-				&record.Request.Path,   // PATH
-				&record.Request.Method, // METHOD
-				&record.Request.Body,   // REQUEST
-				&record.Response.Body,  // RESPONSE
-				&record.Response.Code,  // RESPONSE_CODE
-			)
-			if reqHeadersRow, err := db.Query(getScript("selectRequestHeaders"), record.ID, "IN"); err == nil {
-				var reqHeaders Headers = make(Headers)
-				for reqHeadersRow.Next() { // Iterate and fetch the records from result cursor
-					var key, value string
-					_ = reqHeadersRow.Scan(&key, &value)
-					reqHeaders[key] = append(reqHeaders[key], value)
-				}
-				record.Request.Headers = reqHeaders
-			} else {
-				log.WithError(err).Warn("Failed to fetch request headers")
+		c := b.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			fmt.Printf("key=%s, value=%s\n", k, v)
+			var r Record
+			err := json.Unmarshal(v, &r)
+			if err != nil {
+				log.WithError(err).
+					WithFields(logrus.Fields{
+						"value": string(v),
+						"key":   string(k),
+					}).
+					Error("Failed to marshal request json")
 			}
-			if resHeadersRow, err := db.Query(getScript("selectRequestHeaders"), record.ID, "OUT"); err == nil {
-				var resHeaders Headers = make(Headers)
-				for resHeadersRow.Next() { // Iterate and fetch the records from result cursor
-					var key, value string
-					_ = resHeadersRow.Scan(&key, &value)
-					resHeaders[key] = append(resHeaders[key], value)
-				}
-				record.Response.Headers = resHeaders
-			} else {
-				log.WithError(err).Warn("Failed to fetch response headers")
-			}
-			records = append(records, record)
+			records = append(records, r)
 		}
-	}
 
+		return nil
+	}); err != nil {
+		log.WithError(err).
+			Error("Failed to open View Transaction")
+	}
 	return records
 }
 
@@ -248,6 +115,9 @@ func debug(obj interface{}) {
 	log.Debug(obj)
 }
 
-func getScript(name string) string {
-	return scriptsMap[name]
+// itob returns an 8-byte big endian representation of v.
+func itob(v int) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(v))
+	return b
 }
