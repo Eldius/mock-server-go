@@ -18,7 +18,6 @@ WORKDIR /app
 
 COPY --chown=0:0 --from=builder /app/mock-server-go /app
 COPY static /app/static
-COPY docker/entrypoint.sh /app/entrypoint.sh
 COPY mapper/samples/example_mapping_file.yml /app/mapping.yml
 
 ENTRYPOINT [ "./mock-server-go", "start", "mapping.yml" ]
