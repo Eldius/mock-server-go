@@ -68,5 +68,5 @@ dockermulti:
 		--platform linux/arm/v7,linux/arm64/v8,linux/amd64 \
 		--tag eldius/mock-server-go-multi:latest .
 
-serializer/messages.pb.go:
-	protoc -I=$(shell pwd) --go_out=$(shell pwd) $(shell pwd)/serializer/proto/messages.proto
+request/request.pb.go:
+	protoc -I=$(shell pwd) --go_out=$(shell pwd) $(shell pwd)/request/proto/request.proto

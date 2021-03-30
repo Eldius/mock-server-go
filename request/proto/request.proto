@@ -3,27 +3,25 @@ package request;
 
 import "google/protobuf/timestamp.proto";
 
-message UUID {
-  required string value = 1;
-}
+option go_package = "request/";
 
-message RequestRecord {
+message RequestRecordP {
 	string Path = 1;
 	string Method = 2;
 	map<string, string> Headers = 3;
 	string Body = 4;
 }
 
-message ResponseRecord {
+message ResponseRecordP {
 	map<string, string> Headers = 1;
-	int Code = 2;
+	int64 Code = 2;
 	string Body = 3;
 }
 
-message Record {
+message RecordP {
 	int64 ID = 1;
 	google.protobuf.Timestamp RequestDate  = 2;
 	string ReqID = 3;
-	RequestRecord Request = 4;
-	ResponseRecord Response = 5;
+	RequestRecordP Request = 4;
+	ResponseRecordP Response = 5;
 }
