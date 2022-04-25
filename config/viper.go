@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/mitchellh/go-homedir"
@@ -22,7 +23,7 @@ func Setup(cfgFile string) {
 		}
 
 		// Search config in home directory with name ".mock-server-go" (without extension).
-		viper.AddConfigPath(home)
+		viper.AddConfigPath(filepath.Join(home, ".mock-server"))
 		viper.SetConfigName(".mock-server-go")
 	}
 

@@ -3,8 +3,11 @@ package request
 import (
 	"encoding/binary"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/Eldius/mock-server-go/logger"
+	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	bolt "go.etcd.io/bbolt"
 )
@@ -16,8 +19,16 @@ var (
 )
 
 func init() {
-	var err error
-	db, err = bolt.Open("mocky.db", 0666, nil)
+	home, err := homedir.Dir()
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+
+	dbPath := filepath.Join(home, ".mock-server")
+	_ = os.MkdirAll(dbPath, os.ModePerm)
+
+	db, err = bolt.Open(filepath.Join(dbPath, "mocky.db"), 0666, nil)
 	if err != nil {
 		fmt.Println("Failed to open db file")
 		panic(err)
