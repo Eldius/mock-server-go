@@ -21,8 +21,8 @@ func TestV8Scripting(t *testing.T) {
 		res;
 `
 
-	ctx, _ := v8go.NewContext() // new context with a default VM
-	obj := ctx.Global()         // get the global object from the context
+	ctx := v8go.NewContext() // new context with a default VM
+	obj := ctx.Global()      // get the global object from the context
 	if err := obj.Set("req", `{
 		"body": {"contract": 12345, "status": "PENDING"},
 		"headers": {

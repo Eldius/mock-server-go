@@ -38,7 +38,7 @@
         let xmlHttp = new XMLHttpRequest();
         xmlHttp.open("GET", "/request", false);
         xmlHttp.send(null);
-        JSON.parse(xmlHttp.responseText).forEach(el => {
+        JSON.parse(xmlHttp.response).forEach(el => {
             let tr = document.createElement("tr");
             let colID = document.createElement("th"); // ID
             colID.scope = ["row"];
@@ -68,7 +68,7 @@
             let colRequestHeaders = document.createElement("th"); // Request Headers
             let divReqHeaders = document.createElement("div");
             colRequestHeaders.appendChild(divReqHeaders);
-            Object.entries(el.request.headers).forEach(entry => {
+            Object.entries(el.request.headers != null ? el.request.headers : []).forEach(entry => {
                 const [key, values] = entry;
                 console.log(key, values);
                 let p = document.createElement("p");
@@ -85,7 +85,7 @@
             let divResHeaders = document.createElement("div");
             colResponseHeaders.appendChild(divResHeaders);
             console.log(JSON.stringify(el.response.headers));
-            Object.entries(el.response.headers).forEach(entry => {
+            Object.entries(el.response.headers != null ? el.response.headers : []).forEach(entry => {
                 const [key, values] = entry;
                 console.log(key, values);
                 let p = document.createElement("p");

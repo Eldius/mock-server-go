@@ -1,10 +1,11 @@
 package server
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/Eldius/mock-server-go/logger"
@@ -16,13 +17,13 @@ import (
 var (
 	adminConsole bool = true
 	log               = logger.Log()
+
+	//go:embed static/**
+	staticFiles embed.FS
 )
 
 func init() {
-	if _, err := os.Stat("static/index.html"); err != nil {
-		log.WithError(err).Println("Admin console is disabled")
-		adminConsole = false
-	}
+
 }
 
 func RouteHandler(router *mapper.Router) func(rw http.ResponseWriter, r *http.Request) {
@@ -92,7 +93,9 @@ func encodeResponse(router *mapper.Router, r *http.Request, rw http.ResponseWrit
 func StartAdminServer(port int, r *mapper.Router) {
 	mux := http.NewServeMux()
 	if adminConsole {
-		fs := http.FileServer(http.Dir("./static"))
+		fsys := fs.FS(staticFiles)
+		html, _ := fs.Sub(fsys, "static")
+		fs := http.FileServer(http.FS(html))
 		mux.Handle("/", fs)
 	}
 	mux.HandleFunc("/route", RouteHandler(r))
