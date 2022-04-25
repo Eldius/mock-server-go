@@ -1,4 +1,4 @@
-FROM golang:1.16-alpine3.13 as builder
+FROM golang:1.18-alpine3.15 as builder
 
 WORKDIR /app
 COPY . /app
@@ -17,7 +17,7 @@ EXPOSE 8081
 WORKDIR /app
 
 COPY --chown=0:0 --from=builder /app/mock-server-go /app
-COPY static /app/static
+#COPY static /app/static
 COPY mapper/samples/example_mapping_file.yml /app/mapping.yml
 
 ENTRYPOINT [ "./mock-server-go", "start", "mapping.yml" ]
