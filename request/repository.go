@@ -120,10 +120,6 @@ func GetRequests() []Record {
 	return records
 }
 
-func debug(obj interface{}) {
-	log.Debug(obj)
-}
-
 // itob returns an 8-byte big endian representation of v.
 func itob(v int) []byte {
 	b := make([]byte, 8)
