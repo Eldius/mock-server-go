@@ -9,7 +9,7 @@ RUN apk add --no-cache git make build-base sqlite
 RUN go build -v -a -ldflags '-extldflags "-static"' .
 RUN chmod +x /app/mock-server-go
 
-FROM alpine:3.13
+FROM alpine:3.15
 
 EXPOSE 8080
 EXPOSE 8081
