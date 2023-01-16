@@ -162,9 +162,9 @@ type RecordP struct {
 
 	ID          int64                `protobuf:"varint,1,opt,name=ID,json=iD,proto3" json:"ID,omitempty"`
 	RequestDate *timestamp.Timestamp `protobuf:"bytes,2,opt,name=RequestDate,json=requestDate,proto3" json:"RequestDate,omitempty"`
-	ReqID       string               `protobuf:"bytes,3,opt,name=ReqID,json=reqID,proto3" json:"ReqID,omitempty"`
-	Request     *RequestRecordP      `protobuf:"bytes,4,opt,name=Request,json=request,proto3" json:"Request,omitempty"`
-	Response    *ResponseRecordP     `protobuf:"bytes,5,opt,name=Response,json=response,proto3" json:"Response,omitempty"`
+	ReqID       string           `protobuf:"bytes,3,opt,name=ReqID,json=reqID,proto3" json:"ReqID,omitempty"`
+	Request     *RequestRecordP  `protobuf:"bytes,4,opt,name=Request,json=request,proto3" json:"Request,omitempty"`
+	Response    *ResponseRecordP `protobuf:"bytes,5,opt,name=Response,json=response,proto3" json:"Response,omitempty"`
 }
 
 func (x *RecordP) Reset() {

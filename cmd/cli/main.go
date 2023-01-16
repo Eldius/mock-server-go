@@ -15,8 +15,10 @@ limitations under the License.
 */
 package main
 
-import "github.com/Eldius/mock-server-go/cmd"
+import (
+    "github.com/Eldius/mock-server-go/cmd/cli/cmd"
+)
 
 func main() {
-	cmd.Execute()
+    cmd.Execute()
 }
