@@ -70,3 +70,6 @@ dockermulti:
 
 request/request.pb.go:
 	protoc -I=$(shell pwd) --go_out=$(shell pwd) $(shell pwd)/request/proto/request.proto
+
+lint:
+	revive -formatter stylish ./...
